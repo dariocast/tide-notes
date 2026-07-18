@@ -62,7 +62,7 @@ class _NoteComposerState extends State<NoteComposer> {
   @override
   Widget build(BuildContext context) => Padding(
     key: const ValueKey('composer'),
-    padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
     child: Shortcuts(
       shortcuts: const {
         SingleActivator(LogicalKeyboardKey.enter, meta: true): SubmitIntent(),
@@ -77,11 +77,16 @@ class _NoteComposerState extends State<NoteComposer> {
           ),
         },
         child: DecoratedBox(
+          key: const ValueKey('composer-surface'),
           decoration: BoxDecoration(
             color: Theme.of(
               context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(22),
+            ).colorScheme.surface.withValues(alpha: 0.72),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: 1,
+            ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -92,12 +97,12 @@ class _NoteComposerState extends State<NoteComposer> {
                   controller: _controller,
                   focusNode: _focusNode,
                   minLines: 2,
-                  maxLines: 6,
+                  maxLines: 5,
                   keyboardType: TextInputType.multiline,
                   decoration: const InputDecoration(
                     hintText: 'Capture a thought…',
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.fromLTRB(18, 14, 8, 14),
+                    contentPadding: EdgeInsets.fromLTRB(16, 12, 6, 12),
                   ),
                 ),
               ),
@@ -105,6 +110,7 @@ class _NoteComposerState extends State<NoteComposer> {
                 label: 'Save note',
                 button: true,
                 child: IconButton(
+                  tooltip: 'Save note',
                   onPressed: _submit,
                   icon: const Icon(Icons.arrow_upward_rounded),
                 ),

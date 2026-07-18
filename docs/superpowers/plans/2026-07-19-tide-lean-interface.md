@@ -40,14 +40,14 @@ android/, ios/, macos/                        generated icon assets
 
 ## Task 2: Lean shell, header, composer, and empty state
 
-- [ ] Extend `test/presentation/pages/tide_page_test.dart` with failing assertions for one max-width column, `Tide`, note count/date, compact composer, and left-aligned empty copy.
-- [ ] Run page tests; verify RED on missing `TideHeader` and layout keys.
-- [ ] Add `TideHeader` with `noteCount` and injected `now`; localize date through `MaterialLocalizations`.
-- [ ] Center `TidePage` in a 760-pixel `ConstrainedBox`; keep header/composer fixed above `Expanded(NoteStream)`.
-- [ ] Restyle `NoteComposer` as a shallow outlined surface while preserving blank rejection, save semantics, focus retention, multiline Enter, and Meta+Enter.
-- [ ] Replace illustrated empty state with compact left-aligned text.
-- [ ] Run page, app, accessibility, and full widget tests; verify GREEN.
-- [ ] Update checkboxes and commit `feat: create Tide lean shell`.
+- [x] Extend `test/presentation/pages/tide_page_test.dart` with failing assertions for one max-width column, `Tide`, note count/date, compact composer, and left-aligned empty copy.
+- [x] Run page tests; verify RED on missing `TideHeader` and layout keys.
+- [x] Add `TideHeader` with `noteCount` and injected `now`; localize date through `MaterialLocalizations`.
+- [x] Center `TidePage` in a 760-pixel `ConstrainedBox`; keep header/composer fixed above `Expanded(NoteStream)`.
+- [x] Restyle `NoteComposer` as a shallow outlined surface while preserving blank rejection, save semantics, focus retention, multiline Enter, and Meta+Enter.
+- [x] Replace illustrated empty state with compact left-aligned text.
+- [x] Run page, app, accessibility, and full widget tests; verify GREEN.
+- [x] Update checkboxes and commit `feat: create Tide lean shell`.
 
 ## Task 3: Flat note rows and prefix-only color
 

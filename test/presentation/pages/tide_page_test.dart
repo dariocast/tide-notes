@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
+import 'package:tide/core/theme/tide_theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
@@ -24,6 +25,9 @@ void main() {
   Future<(TideBloc, PageRepository)> pumpPage(
     WidgetTester tester, {
     List<Note> notes = const [],
+    MediaQueryData? mediaQuery,
+    ThemeData? theme,
+    DateTime Function()? now,
   }) async {
     final repository = PageRepository();
     final bloc = TideBloc(
@@ -42,10 +46,18 @@ void main() {
       await repository.dispose();
     });
 
+    Widget page = BlocProvider.value(
+      value: bloc,
+      child: now == null ? const TidePage() : TidePage(now: now),
+    );
+    if (theme != null) page = Theme(data: theme, child: page);
+    if (mediaQuery != null) {
+      page = MediaQuery(data: mediaQuery, child: page);
+    }
     await tester.pumpWidget(
-      TideApp(
-        home: BlocProvider.value(value: bloc, child: const TidePage()),
-      ),
+      theme == null
+          ? TideApp(home: page)
+          : MaterialApp(theme: theme, home: page),
     );
     if (notes.isNotEmpty) {
       bloc.add(const TideStarted());
@@ -117,6 +129,47 @@ void main() {
     expect(find.textContaining('Rescue'), findsOneWidget);
   });
 
+  testWidgets('lean shell shows Tide count and localized date', (tester) async {
+    await pumpPage(
+      tester,
+      notes: [makeNote('one'), makeNote('two')],
+      now: () => DateTime(2026, 7, 19, 12),
+    );
+    await tester.pump();
+
+    final shell = tester.widget<ConstrainedBox>(
+      find.byKey(const ValueKey('tide-shell')),
+    );
+    expect(shell.constraints.maxWidth, 760);
+    expect(find.text('Tide'), findsOneWidget);
+    expect(find.textContaining('2 notes captured'), findsOneWidget);
+    expect(find.textContaining('Jul 19'), findsOneWidget);
+  });
+
+  testWidgets('composer is a compact outlined capture surface', (tester) async {
+    await pumpPage(tester);
+
+    final surface = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('composer-surface')),
+    );
+    final decoration = surface.decoration as BoxDecoration;
+    expect(decoration.border, isNotNull);
+    expect(decoration.borderRadius, BorderRadius.circular(16));
+    expect(
+      tester.getSize(find.byKey(const ValueKey('composer'))).height,
+      lessThan(110),
+    );
+  });
+
+  testWidgets('empty stream guidance is left aligned', (tester) async {
+    await pumpPage(tester);
+
+    final guidance = tester.widget<Text>(
+      find.textContaining('Capture anything'),
+    );
+    expect(guidance.textAlign, TextAlign.left);
+  });
+
   testWidgets('tapping note opens inline editor and focus loss flushes edit', (
     tester,
   ) async {
@@ -156,6 +209,33 @@ void main() {
         .map((semantics) => semantics.properties.label);
     expect(labels, contains('Save note'));
     expect(labels, contains('Rescue note'));
+    semantics.dispose();
+  });
+
+  testWidgets('large text and theme modes meet accessibility guidelines', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpPage(
+      tester,
+      mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(2)),
+      theme: TideTheme.light,
+    );
+    expect(tester.takeException(), isNull);
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+
+    await pumpPage(
+      tester,
+      mediaQuery: const MediaQueryData(
+        textScaler: TextScaler.linear(2),
+        platformBrightness: Brightness.dark,
+      ),
+      theme: TideTheme.dark,
+    );
+    expect(tester.takeException(), isNull);
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
     semantics.dispose();
   });
 }

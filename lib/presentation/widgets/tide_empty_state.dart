@@ -4,27 +4,29 @@ class TideEmptyState extends StatelessWidget {
   const TideEmptyState({super.key});
 
   @override
-  Widget build(BuildContext context) => Center(
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.topLeft,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.water_drop_outlined,
-            size: 48,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 20),
           Text(
-            'A quiet stream starts here.',
-            style: Theme.of(context).textTheme.headlineSmall,
-            textAlign: TextAlign.center,
+            'Your stream is quiet.',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.left,
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Append a thought, Review what sinks, Rescue what still matters.',
-            textAlign: TextAlign.center,
+          const SizedBox(height: 8),
+          Text(
+            'Capture anything above. Append freely, Review what sinks, Rescue what still matters.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.outline,
+              height: 1.45,
+            ),
+            textAlign: TextAlign.left,
           ),
         ],
       ),
