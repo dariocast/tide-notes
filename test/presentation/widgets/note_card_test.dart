@@ -4,6 +4,7 @@ import 'package:tide/core/theme/tide_colors.dart';
 import 'package:tide/core/theme/tide_theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
+import 'package:tide/presentation/widgets/prefix_text.dart';
 
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
@@ -31,7 +32,12 @@ void main() {
       ),
     );
 
-    final richText = tester.widget<RichText>(find.byType(RichText));
+    final richText = tester.widget<RichText>(
+      find.descendant(
+        of: find.byType(PrefixText),
+        matching: find.byType(RichText),
+      ),
+    );
     final span = richText.text as TextSpan;
     final color = span.style!.color!;
     expect(_contrast(color, TideColors.pearl), greaterThanOrEqualTo(4.5));
@@ -59,6 +65,63 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(rescueCount, 0);
+  });
+
+  testWidgets('row is flat with metadata and a hairline separator', (
+    tester,
+  ) async {
+    final rescued = note.copyWith(rescueCount: 2);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideTheme.light,
+        home: Scaffold(
+          body: NoteCard(
+            note: rescued,
+            index: 1,
+            now: () => timestamp.add(const Duration(hours: 2)),
+            onChanged: (_) {},
+            onRescue: () {},
+          ),
+        ),
+      ),
+    );
+
+    final row = tester.widget<AnimatedContainer>(
+      find.byKey(const ValueKey('note-row')),
+    );
+    final decoration = row.decoration as BoxDecoration;
+    expect(decoration.color, isNull);
+    expect(decoration.borderRadius, isNull);
+    expect(decoration.border?.bottom.width, 1);
+    expect(find.textContaining('2h ago'), findsOneWidget);
+    expect(find.textContaining('Jul 18'), findsOneWidget);
+    expect(find.textContaining('↑ 2'), findsOneWidget);
+  });
+
+  testWidgets('inline editor keeps the flat row surface', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideTheme.light,
+        home: Scaffold(
+          body: NoteCard(
+            note: note,
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+          ),
+        ),
+      ),
+    );
+
+    final before = tester.getSize(find.byKey(const ValueKey('note-row')));
+    await tester.tap(find.byType(PrefixText));
+    await tester.pump();
+
+    expect(find.byType(TextField), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('note-row'))).width,
+      before.width,
+    );
   });
 }
 

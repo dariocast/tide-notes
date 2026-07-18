@@ -12,6 +12,7 @@ class NoteStream extends StatelessWidget {
     required this.onChanged,
     required this.onRescue,
     this.haptic = defaultTideHaptic,
+    this.now = defaultNoteNow,
   });
 
   final List<Note> notes;
@@ -19,6 +20,7 @@ class NoteStream extends StatelessWidget {
   final ValueChanged<NoteEdit> onChanged;
   final ValueChanged<String> onRescue;
   final VoidCallback haptic;
+  final DateTime Function() now;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class NoteStream extends StatelessWidget {
           onChanged: (content) => onChanged(NoteEdit(note.id, content)),
           onRescue: () => onRescue(note.id),
           haptic: haptic,
+          now: now,
         );
       },
     );

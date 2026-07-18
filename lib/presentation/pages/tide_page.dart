@@ -81,6 +81,7 @@ class TidePage extends StatelessWidget {
                       notes: state.notes,
                       busyNoteIds: state.busyNoteIds,
                       haptic: haptic,
+                      now: now,
                       onChanged: (edit) => context.read<TideBloc>().add(
                         NoteEditRequested(edit.id, edit.content),
                       ),

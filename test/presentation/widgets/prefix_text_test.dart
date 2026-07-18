@@ -18,4 +18,27 @@ void main() {
     expect(find.bySemanticsLabel(content), findsOneWidget);
     expect(find.byType(RichText), findsOneWidget);
   });
+
+  testWidgets('color is applied only to the parsed prefix', (tester) async {
+    const bodyColor = Color(0xFF516068);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideTheme.light,
+        home: const Scaffold(
+          body: DefaultTextStyle(
+            style: TextStyle(color: bodyColor),
+            child: PrefixText(content: 'idea: calm capture', index: 8),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(ShaderMask), findsNothing);
+    final richText = tester.widget<RichText>(find.byType(RichText));
+    final root = richText.text as TextSpan;
+    expect(root.style?.color, bodyColor);
+    expect(root.children, hasLength(2));
+    expect((root.children!.first as TextSpan).style?.color, isNot(bodyColor));
+    expect((root.children!.last as TextSpan).style?.color, isNull);
+  });
 }

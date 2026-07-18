@@ -51,13 +51,13 @@ android/, ios/, macos/                        generated icon assets
 
 ## Task 3: Flat note rows and prefix-only color
 
-- [ ] Extend `note_card_test.dart` and `prefix_text_test.dart` with failing assertions for no filled card decoration, metadata text, prefix-only color, separators, edit geometry, and rescue semantics.
-- [ ] Run widget tests; verify RED on metadata/flat-row assertions.
-- [ ] Refactor `PrefixText` to apply deterministic accessible color only to the parsed prefix and preserve body sinking color.
-- [ ] Refactor `NoteCard` into a flat row with content, metadata, hairline separation, inline editor, restrained rescue background, and existing motion/haptic guards.
-- [ ] Pass injected `now` through `TidePage` and `NoteStream`; keep stable keys and lazy builder behavior.
-- [ ] Run parser/widget/page/rescue tests plus 10,000-note lazy test; verify GREEN.
-- [ ] Update checkboxes and commit `feat: flatten Tide note stream`.
+- [x] Extend `note_card_test.dart` and `prefix_text_test.dart` with failing assertions for no filled card decoration, metadata text, prefix-only color, separators, edit geometry, and rescue semantics.
+- [x] Run widget tests; verify RED on metadata/flat-row assertions.
+- [x] Refactor `PrefixText` to apply deterministic accessible color only to the parsed prefix and preserve body sinking color.
+- [x] Refactor `NoteCard` into a flat row with content, metadata, hairline separation, inline editor, restrained rescue background, and existing motion/haptic guards.
+- [x] Pass injected `now` through `TidePage` and `NoteStream`; keep stable keys and lazy builder behavior.
+- [x] Run parser/widget/page/rescue tests plus 10,000-note lazy test; verify GREEN.
+- [x] Update checkboxes and commit `feat: flatten Tide note stream`.
 
 ## Task 4: Launcher icon generation
 
