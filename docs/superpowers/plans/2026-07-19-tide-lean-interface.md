@@ -61,12 +61,12 @@ android/, ios/, macos/                        generated icon assets
 
 ## Task 4: Launcher icon generation
 
-- [ ] Copy the supplied 2000×2000 source to `assets/icon/tide-app-icon.png` and verify dimensions/alpha.
-- [ ] Add `flutter_launcher_icons: ^0.14.4` under dev dependencies and configuration for Android, iOS, and macOS; set iOS alpha fill to `#F3F5F4`.
-- [ ] Run `flutter pub get` and `dart run flutter_launcher_icons`.
-- [ ] Verify generated Android mipmaps/adaptive XML, iOS AppIcon PNGs/manifest, macOS AppIcon PNGs/manifest, and absence of alpha in iOS output.
-- [ ] Document icon regeneration command in README.
-- [ ] Update checkboxes and commit `chore: apply Tide launcher icon`.
+- [x] Copy the supplied 2000×2000 source to `assets/icon/tide-app-icon.png` and verify dimensions/alpha.
+- [x] Add `flutter_launcher_icons: ^0.14.4` under dev dependencies and configuration for Android, iOS, and macOS; set iOS alpha fill to `#F3F5F4`.
+- [x] Run `flutter pub get` and `dart run flutter_launcher_icons`.
+- [x] Verify generated Android mipmaps/adaptive XML, iOS AppIcon PNGs/manifest, macOS AppIcon PNGs/manifest, and absence of alpha in iOS output.
+- [x] Document icon regeneration command in README.
+- [x] Update checkboxes and commit `chore: apply Tide launcher icon`.
 
 ## Task 5: Complete MVP verification
 
