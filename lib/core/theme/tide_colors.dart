@@ -10,4 +10,10 @@ abstract final class TideColors {
   static const moon = Color(0xFFE4EEF1);
   static const lightMuted = Color(0xFF49636E);
   static const darkMuted = Color(0xFFB1C5CB);
+  static const mist = Color(0xFFE8EDEC);
+  static const foam = Color(0xFFFBFCFB);
+  static const lightLine = Color(0xFFCCD7D5);
+  static const darkSurface = Color(0xFF102A35);
+  static const darkLine = Color(0xFF2A4650);
+  static const rescue = Color(0xFF3F7C78);
 }

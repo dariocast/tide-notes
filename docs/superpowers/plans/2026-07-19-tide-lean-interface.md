@@ -31,12 +31,12 @@ android/, ios/, macos/                        generated icon assets
 
 ## Task 1: Metadata formatter and visual tokens
 
-- [ ] Add failing tests in `test/core/utils/note_metadata_formatter_test.dart` for seconds/minutes/hours/days and rescue metadata.
-- [ ] Run `flutter test test/core/utils/note_metadata_formatter_test.dart`; verify RED because formatter is absent.
-- [ ] Implement pure functions `relativeSurfacedAge` and `rescueMetadata` in `lib/core/utils/note_metadata_formatter.dart`.
-- [ ] Expand `TideColors` and `TideTheme` with accessible canvas, divider, muted text, input, button, and snackbar styles using system typography.
-- [ ] Run formatter tests, `flutter analyze`, and existing theme/accessibility tests; verify GREEN.
-- [ ] Update these checkboxes and commit `feat: refine Tide visual foundation`.
+- [x] Add failing tests in `test/core/utils/note_metadata_formatter_test.dart` for seconds/minutes/hours/days and rescue metadata.
+- [x] Run `flutter test test/core/utils/note_metadata_formatter_test.dart`; verify RED because formatter is absent.
+- [x] Implement pure functions `relativeSurfacedAge` and `rescueMetadata` in `lib/core/utils/note_metadata_formatter.dart`.
+- [x] Expand `TideColors` and `TideTheme` with accessible canvas, divider, muted text, input, button, and snackbar styles using system typography.
+- [x] Run formatter tests, `flutter analyze`, and existing theme/accessibility tests; verify GREEN.
+- [x] Update these checkboxes and commit `feat: refine Tide visual foundation`.
 
 ## Task 2: Lean shell, header, composer, and empty state
 
