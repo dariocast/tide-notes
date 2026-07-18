@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../core/theme/tide_colors.dart';
 import '../../domain/entities/note.dart';
 import 'prefix_text.dart';
+
+void defaultTideHaptic() {
+  if (defaultTargetPlatform == TargetPlatform.macOS) return;
+  HapticFeedback.lightImpact();
+}
 
 class NoteCard extends StatefulWidget {
   const NoteCard({
@@ -13,6 +20,7 @@ class NoteCard extends StatefulWidget {
     required this.onRescue,
     this.busy = false,
     this.rescueEnabled = true,
+    this.haptic = defaultTideHaptic,
   });
 
   final Note note;
@@ -21,6 +29,7 @@ class NoteCard extends StatefulWidget {
   final bool rescueEnabled;
   final ValueChanged<String> onChanged;
   final VoidCallback onRescue;
+  final VoidCallback haptic;
 
   @override
   State<NoteCard> createState() => _NoteCardState();
@@ -83,7 +92,9 @@ class _NoteCardState extends State<NoteCard> {
     final child = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? const Duration(milliseconds: 80)
+            : const Duration(milliseconds: 320),
         curve: Curves.easeOut,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
@@ -136,6 +147,7 @@ class _NoteCardState extends State<NoteCard> {
           ),
         ),
         confirmDismiss: (_) async {
+          widget.haptic();
           widget.onRescue();
           return false;
         },

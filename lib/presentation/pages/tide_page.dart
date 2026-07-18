@@ -5,10 +5,13 @@ import '../blocs/tide_bloc.dart';
 import '../blocs/tide_event.dart';
 import '../blocs/tide_state.dart';
 import '../widgets/note_composer.dart';
+import '../widgets/note_card.dart';
 import '../widgets/note_stream.dart';
 
 class TidePage extends StatelessWidget {
-  const TidePage({super.key});
+  const TidePage({super.key, this.haptic = defaultTideHaptic});
+
+  final VoidCallback haptic;
 
   @override
   Widget build(BuildContext context) => BlocConsumer<TideBloc, TideState>(
@@ -62,6 +65,7 @@ class TidePage extends StatelessWidget {
                 child: NoteStream(
                   notes: state.notes,
                   busyNoteIds: state.busyNoteIds,
+                  haptic: haptic,
                   onChanged: (edit) => context.read<TideBloc>().add(
                     NoteEditRequested(edit.id, edit.content),
                   ),
