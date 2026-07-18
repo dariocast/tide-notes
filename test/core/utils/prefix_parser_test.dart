@@ -11,7 +11,7 @@ void main() {
   });
 
   test('prefix palette hash is case insensitive and deterministic', () {
-    expect(prefixPaletteIndex('TODO:', 6), prefixPaletteIndex('todo:', 6));
-    expect(prefixPaletteIndex('TODO:', 6), prefixPaletteIndex('TODO:', 6));
+    expect(prefixPaletteIndex('IDEA:', 6), prefixPaletteIndex('idea:', 6));
+    expect(prefixPaletteIndex('IDEA:', 6), prefixPaletteIndex('IDEA:', 6));
   });
 }

@@ -25,6 +25,16 @@ flutter test
 flutter test integration_test/tide_flow_test.dart -d macos
 ```
 
+Profile smoke test (10,000 seeded notes, automated continuous scroll for 30 seconds):
+
+```bash
+flutter drive --profile -d macos \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/tide_profile_test.dart
+```
+
+Verified on 2026-07-19: completed without crashes, framework exceptions, test-observable scrolling stalls, or eager mounting; fewer than 100 note rows remained mounted throughout.
+
 ## Architecture
 
 The code uses Clean Architecture with layer-first boundaries:

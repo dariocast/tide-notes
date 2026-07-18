@@ -70,9 +70,9 @@ android/, ios/, macos/                        generated icon assets
 
 ## Task 5: Complete MVP verification
 
-- [ ] Run Drift code generation and strict format check.
-- [ ] Run `flutter analyze`, `flutter test`, and macOS integration flow.
-- [ ] Run Android debug APK, iOS simulator, and macOS debug builds.
-- [ ] Inspect generated files, accessibility guidelines, spec compliance, `git diff --check`, unfinished-marker scan, and final status.
-- [ ] Complete remaining checkboxes in the original MVP plan and this plan.
-- [ ] Commit final verification/docs as `test: verify polished Tide MVP`.
+- [x] Run Drift code generation and strict format check.
+- [x] Run `flutter analyze`, `flutter test`, and macOS integration flow.
+- [x] Run Android debug APK, iOS simulator, and macOS debug builds.
+- [x] Inspect generated files, accessibility guidelines, spec compliance, `git diff --check`, unfinished-marker scan, and final status.
+- [x] Complete remaining checkboxes in the original MVP plan and this plan.
+- [x] Commit final verification/docs as `test: verify polished Tide MVP`.
