@@ -122,21 +122,25 @@ class _NoteCardState extends State<NoteCard> {
       return KeyedSubtree(key: ValueKey(widget.note.id), child: interactive);
     }
 
-    return Dismissible(
-      key: ValueKey(widget.note.id),
-      direction: DismissDirection.startToEnd,
-      background: const Align(
-        alignment: Alignment.centerLeft,
-        child: Padding(
-          padding: EdgeInsets.only(left: 24),
-          child: Icon(Icons.wb_sunny_outlined),
+    return Semantics(
+      label: 'Rescue note',
+      button: true,
+      child: Dismissible(
+        key: ValueKey(widget.note.id),
+        direction: DismissDirection.startToEnd,
+        background: const Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 24),
+            child: Icon(Icons.wb_sunny_outlined),
+          ),
         ),
+        confirmDismiss: (_) async {
+          widget.onRescue();
+          return false;
+        },
+        child: interactive,
       ),
-      confirmDismiss: (_) async {
-        widget.onRescue();
-        return false;
-      },
-      child: interactive,
     );
   }
 }
