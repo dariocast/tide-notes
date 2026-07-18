@@ -1,0 +1,195 @@
+---
+alwaysApply: true
+---
+
+# Flutter Architecture Rules (Layer-First + Bloc)
+
+## Architecture Style
+
+This project follows **Clean Architecture with a Layer-First
+structure**.
+
+The codebase is **NOT feature-first**.
+
+Code must be organized by **layers**, not by feature modules.
+
+### Correct Structure
+
+    lib/
+    ├── core/
+    │   ├── error/
+    │   ├── network/
+    │   ├── utils/
+    │   └── widgets/
+    │
+    ├── data/
+    │   ├── datasources/
+    │   ├── models/
+    │   └── repositories/
+    │
+    ├── domain/
+    │   ├── entities/
+    │   ├── repositories/
+    │   └── usecases/
+    │
+    ├── presentation/
+    │   ├── blocs/
+    │   ├── pages/
+    │   └── widgets/
+    │
+    └── main.dart
+
+### Dependency Rule
+
+Dependencies must always point **inward**:
+
+    Presentation → Domain → Data
+
+Forbidden: - Domain importing Flutter - Domain importing Data -
+Presentation importing data sources - Entities using data models
+
+------------------------------------------------------------------------
+
+# State Management
+
+The project uses **flutter_bloc as the ONLY state management solution**.
+
+Allowed: - Bloc - Cubit - BlocProvider - MultiBlocProvider -
+BlocBuilder - BlocListener - BlocConsumer
+
+Forbidden: - Provider - Riverpod - ChangeNotifier - ValueNotifier -
+MobX - Redux - Any other state management library or mixin (es. rxdart)
+
+### setState
+
+`setState` is allowed **only for ephemeral UI state inside a single
+widget**.
+
+Examples: - password visibility toggle - animation flags - local tab
+selection - expand/collapse
+
+`setState` must **NOT** be used for:
+
+- API state
+- business logic
+- form submission
+- pagination
+- filtering/sorting logic
+- shared state
+- anything used outside the widget
+
+If the state involves **async logic or multiple widgets**, it must be
+handled with **Bloc/Cubit**.
+
+Bloc/Cubit must be the **single source of truth for feature state**.
+
+------------------------------------------------------------------------
+
+# Dependency Management
+
+No dependency injection framework is allowed.
+
+Forbidden: - GetIt - injectable - kiwi - riverpod as DI - provider as
+DI - service locators
+
+Dependencies must be passed via:
+
+- constructor injection
+- BlocProvider
+- RepositoryProvider
+
+Example:
+
+    BlocProvider(
+      create: (_) => UserBloc(getUserUseCase),
+    )
+
+Avoid: - global singletons - hidden dependency resolution - static
+service locators
+
+------------------------------------------------------------------------
+
+# Layer Responsibilities
+
+### Presentation
+
+Contains: - UI widgets - pages - blocs / cubits
+
+Rules: - no business logic inside widgets - widgets render state and
+dispatch events - UI must never call repositories directly
+
+Side effects (navigation, dialogs, snackbars) must be handled with
+**BlocListener**.
+
+------------------------------------------------------------------------
+
+### Domain
+
+Contains: - entities - repository interfaces - use cases
+
+Rules: - pure Dart only - no Flutter imports - no framework dependencies
+
+------------------------------------------------------------------------
+
+### Data
+
+Contains: - remote/local datasources - DTO models - repository
+implementations
+
+Repositories must map:
+
+    DTO → Entity
+
+Data models must **never reach the presentation layer**.
+
+------------------------------------------------------------------------
+
+# Bloc Rules
+
+Blocs/Cubits: - contain business logic - orchestrate use cases - emit
+states
+
+Blocs must NOT: - contain UI code - depend on BuildContext - perform
+navigation
+
+Never store or pass **BuildContext** inside Bloc/Cubit.
+
+------------------------------------------------------------------------
+
+# UI Rules
+
+Widgets must:
+
+- be mostly stateless
+- render bloc state
+- dispatch events
+
+Widgets must NOT:
+
+- contain business logic
+- call repositories
+- manage async logic
+
+------------------------------------------------------------------------
+
+# Testing (Recommended)
+
+- Unit tests for domain and blocs
+- Widget tests for UI
+- Mock repositories in bloc tests
+
+------------------------------------------------------------------------
+
+## Accessibility (A11Y)
+Implement accessibility features to empower all users, assuming a wide variety
+of users with different physical abilities, mental abilities, age groups,
+education levels, and learning styles.
+
+- **Color Contrast:** Ensure text has a contrast ratio of at least **4.5:1**
+  against its background.
+- **Dynamic Text Scaling:** Test your UI to ensure it remains usable when users
+  increase the system font size.
+- **Semantic Labels:** Use the `Semantics` widget to provide clear, descriptive
+  labels for UI elements.
+- **Screen Reader Testing:** Regularly test your app with TalkBack (Android) and
+  VoiceOver (iOS).
