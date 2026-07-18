@@ -8,4 +8,6 @@ abstract final class TideColors {
   static const ink = Color(0xFF172A33);
   static const ocean = Color(0xFF081B25);
   static const moon = Color(0xFFE4EEF1);
+  static const lightMuted = Color(0xFF49636E);
+  static const darkMuted = Color(0xFFB1C5CB);
 }
