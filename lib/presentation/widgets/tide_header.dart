@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../design/appearance_controller.dart';
+import '../../design/design_helpers.dart';
+import '../../design/design_tokens.dart';
+
 class TideHeader extends StatelessWidget {
   const TideHeader({super.key, required this.noteCount, required this.now});
 
@@ -12,30 +16,83 @@ class TideHeader extends StatelessWidget {
         ? '1 note captured'
         : '$noteCount notes captured';
     final date = MaterialLocalizations.of(context).formatMediumDate(now);
-    final scheme = Theme.of(context).colorScheme;
+    final g = Theme.of(context).extension<GravityTheme>()!;
+    final compact = sizeClassOf(context) == GSizeClass.compact;
+    final appearance = AppearanceScope.maybeOf(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.fromLTRB(
+        compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s5,
+        compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s2,
+      ),
+      child: Row(
         children: [
-          Text(
-            'Tide',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Tide', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: GSpace.s1),
+                Text(
+                  '$countLabel • $date',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: g.textMuted),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            '$countLabel • $date',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: scheme.outline,
-              fontWeight: FontWeight.w500,
+          if (appearance != null)
+            Semantics(
+              label: 'Appearance settings',
+              button: true,
+              child: PopupMenuButton<_AppearanceOption>(
+                tooltip: 'Appearance settings',
+                icon: const Icon(Icons.tune_rounded),
+                onSelected: (option) => switch (option) {
+                  _AppearanceOption.system => appearance.setThemeMode(
+                    ThemeMode.system,
+                  ),
+                  _AppearanceOption.light => appearance.setThemeMode(
+                    ThemeMode.light,
+                  ),
+                  _AppearanceOption.dark => appearance.setThemeMode(
+                    ThemeMode.dark,
+                  ),
+                  _AppearanceOption.motion => appearance.setMotionEnabled(
+                    !appearance.motionEnabled,
+                  ),
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: _AppearanceOption.system,
+                    child: Text('Use system theme'),
+                  ),
+                  const PopupMenuItem(
+                    value: _AppearanceOption.light,
+                    child: Text('Use light theme'),
+                  ),
+                  const PopupMenuItem(
+                    value: _AppearanceOption.dark,
+                    child: Text('Use dark theme'),
+                  ),
+                  PopupMenuItem(
+                    value: _AppearanceOption.motion,
+                    child: Text(
+                      appearance.motionEnabled
+                          ? 'Reduce motion'
+                          : 'Enable motion',
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 }
+
+enum _AppearanceOption { system, light, dark, motion }

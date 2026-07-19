@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../design/design_tokens.dart';
 import '../../domain/entities/note.dart';
 import 'note_card.dart';
 import 'tide_empty_state.dart';
@@ -33,7 +34,7 @@ class NoteStream extends StatelessWidget {
 
     return ListView.builder(
       key: const ValueKey('note-list'),
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: GSpace.s5),
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];

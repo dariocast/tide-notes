@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../design/design_helpers.dart';
+import '../../design/design_tokens.dart';
 import '../blocs/tide_bloc.dart';
 import '../blocs/tide_event.dart';
 import '../blocs/tide_state.dart';
@@ -26,22 +28,13 @@ class TidePage extends StatelessWidget {
     listener: (context, state) {
       final message = state.message;
       if (message == null) return;
-      final hasUndo = message == 'Rescued' && state.rescueReceipt != null;
+      if (message == 'Rescued') {
+        context.read<TideBloc>().add(const TideMessageAcknowledged());
+        return;
+      }
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(message),
-            action: hasUndo
-                ? SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () => context.read<TideBloc>().add(
-                      const RescueUndoRequested(),
-                    ),
-                  )
-                : null,
-          ),
-        );
+        ..showSnackBar(SnackBar(content: Text(message)));
       context.read<TideBloc>().add(const TideMessageAcknowledged());
     },
     builder: (context, state) {
@@ -61,35 +54,55 @@ class TidePage extends StatelessWidget {
       }
 
       return Scaffold(
-        body: SafeArea(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              key: const ValueKey('tide-shell'),
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: Column(
-                children: [
-                  TideHeader(noteCount: state.notes.length, now: now()),
-                  NoteComposer(
-                    appendCompleted: state.appendCompleted,
-                    onSubmit: (content) => context.read<TideBloc>().add(
-                      NoteAppendRequested(content),
-                    ),
-                  ),
-                  Expanded(
-                    child: NoteStream(
-                      notes: state.notes,
-                      busyNoteIds: state.busyNoteIds,
-                      haptic: haptic,
-                      now: now,
-                      onChanged: (edit) => context.read<TideBloc>().add(
-                        NoteEditRequested(edit.id, edit.content),
+        body: PaperBackground(
+          child: SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                key: const ValueKey('tide-shell'),
+                constraints: const BoxConstraints(maxWidth: GLayout.contentMax),
+                child: FocusTraversalGroup(
+                  child: Column(
+                    children: [
+                      TideHeader(noteCount: state.notes.length, now: now()),
+                      NoteComposer(
+                        appendCompleted: state.appendCompleted,
+                        onSubmit: (content) => context.read<TideBloc>().add(
+                          NoteAppendRequested(content),
+                        ),
                       ),
-                      onRescue: (id) =>
-                          context.read<TideBloc>().add(NoteRescueRequested(id)),
-                    ),
+                      if (state.rescueReceipt != null)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: GSpace.s4,
+                            ),
+                            child: OutlinedButton(
+                              onPressed: () => context.read<TideBloc>().add(
+                                const RescueUndoRequested(),
+                              ),
+                              child: const Text('Undo rescue'),
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: NoteStream(
+                          notes: state.notes,
+                          busyNoteIds: state.busyNoteIds,
+                          haptic: haptic,
+                          now: now,
+                          onChanged: (edit) => context.read<TideBloc>().add(
+                            NoteEditRequested(edit.id, edit.content),
+                          ),
+                          onRescue: (id) => context.read<TideBloc>().add(
+                            NoteRescueRequested(id),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

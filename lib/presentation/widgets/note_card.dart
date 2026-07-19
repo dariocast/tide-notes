@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/theme/tide_colors.dart';
+import '../../design/design_helpers.dart';
+import '../../design/design_tokens.dart';
 import '../../core/utils/note_metadata_formatter.dart';
 import '../../domain/entities/note.dart';
 import 'prefix_text.dart';
@@ -86,13 +88,12 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final factor = (widget.index / 18).clamp(0.0, 1.0);
-    final strong = scheme.onSurface;
-    final muted = Theme.of(context).brightness == Brightness.dark
-        ? TideColors.darkMuted
-        : TideColors.lightMuted;
-    final foreground = Color.lerp(strong, muted, factor)!;
+    final g =
+        Theme.of(context).extension<GravityTheme>() ??
+        (Theme.of(context).brightness == Brightness.dark
+            ? GravityTheme.dark
+            : GravityTheme.light);
+    final compact = sizeClassOf(context) == GSizeClass.compact;
     final rescue = rescueMetadata(widget.note.rescueCount);
     final metadata = [
       relativeSurfacedAge(widget.note.surfacedAt, widget.now()),
@@ -105,16 +106,15 @@ class _NoteCardState extends State<NoteCard> {
     final child = AnimatedContainer(
       key: const ValueKey('note-row'),
       width: double.infinity,
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? const Duration(milliseconds: 80)
-          : const Duration(milliseconds: 320),
-      curve: Curves.easeOut,
+      duration: context.motion.duration(GMotion.move),
+      curve: GMotion.settle,
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: g.lineSubtle, width: 1)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 16, 14),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? GSpace.s4 : GSpace.s6,
+        vertical: GSpace.s4,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -125,7 +125,6 @@ class _NoteCardState extends State<NoteCard> {
               maxLines: null,
               textInputAction: TextInputAction.newline,
               decoration: const InputDecoration(
-                border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
                 isDense: true,
                 labelText: 'Edit note',
@@ -133,29 +132,15 @@ class _NoteCardState extends State<NoteCard> {
               onChanged: widget.onChanged,
             )
           else
-            DefaultTextStyle.merge(
-              style: TextStyle(color: foreground),
-              child: PrefixText(
-                content: widget.note.content,
-                index: widget.index,
-              ),
-            ),
-          const SizedBox(height: 7),
-          Text(
-            metadata,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: scheme.outline,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+            PrefixText(content: widget.note.content, index: widget.index),
+          const SizedBox(height: GSpace.s2),
+          Text(metadata, style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
 
-    final interactive = InkWell(
-      onTap: widget.busy ? null : _beginEditing,
-      child: child,
+    final interactive = FocusRing(
+      child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
     );
 
     if (widget.busy || !widget.rescueEnabled) {
@@ -164,17 +149,21 @@ class _NoteCardState extends State<NoteCard> {
 
     return Semantics(
       label: 'Rescue note',
+      hint: widget.note.content,
       button: true,
+      customSemanticsActions: {
+        const CustomSemanticsAction(label: 'Rescue note'): widget.onRescue,
+      },
       child: Dismissible(
         key: ValueKey(widget.note.id),
         direction: DismissDirection.startToEnd,
         background: ColoredBox(
-          color: scheme.primaryContainer.withValues(alpha: 0.55),
-          child: const Align(
+          color: g.rescueSoft,
+          child: Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: EdgeInsets.only(left: 24),
-              child: Icon(Icons.arrow_upward_rounded),
+              padding: EdgeInsets.only(left: compact ? GSpace.s4 : GSpace.s6),
+              child: Icon(Icons.arrow_upward_rounded, color: g.rescue),
             ),
           ),
         ),

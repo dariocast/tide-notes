@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
-import 'package:tide/core/theme/tide_theme.dart';
+import 'package:tide/design/design_tokens.dart';
+import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
@@ -140,21 +141,19 @@ void main() {
     final shell = tester.widget<ConstrainedBox>(
       find.byKey(const ValueKey('tide-shell')),
     );
-    expect(shell.constraints.maxWidth, 760);
+    expect(shell.constraints.maxWidth, GLayout.contentMax);
     expect(find.text('Tide'), findsOneWidget);
     expect(find.textContaining('2 notes captured'), findsOneWidget);
     expect(find.textContaining('Jul 19'), findsOneWidget);
   });
 
-  testWidgets('composer is a compact outlined capture surface', (tester) async {
+  testWidgets('composer uses the tokenized capture field', (tester) async {
     await pumpPage(tester);
 
-    final surface = tester.widget<DecoratedBox>(
-      find.byKey(const ValueKey('composer-surface')),
+    final field = tester.widget<TextField>(
+      find.byKey(const ValueKey('composer-input')),
     );
-    final decoration = surface.decoration as BoxDecoration;
-    expect(decoration.border, isNotNull);
-    expect(decoration.borderRadius, BorderRadius.circular(16));
+    expect(field.minLines, 2);
     expect(
       tester.getSize(find.byKey(const ValueKey('composer'))).height,
       lessThan(110),
@@ -218,8 +217,8 @@ void main() {
     final semantics = tester.ensureSemantics();
     await pumpPage(
       tester,
-      mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(2)),
-      theme: TideTheme.light,
+      mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+      theme: GravityAppTheme.light,
     );
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(textContrastGuideline));
@@ -229,10 +228,10 @@ void main() {
     await pumpPage(
       tester,
       mediaQuery: const MediaQueryData(
-        textScaler: TextScaler.linear(2),
+        textScaler: TextScaler.linear(1.3),
         platformBrightness: Brightness.dark,
       ),
-      theme: TideTheme.dark,
+      theme: GravityAppTheme.dark,
     );
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(textContrastGuideline));

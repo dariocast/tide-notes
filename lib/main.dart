@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import 'app.dart';
+import 'design/appearance_controller.dart';
 import 'data/datasources/local/tide_database.dart';
 import 'data/repositories/local_note_repository.dart';
 import 'domain/repositories/note_repository.dart';
@@ -17,11 +18,14 @@ import 'presentation/pages/tide_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const TideBootstrap());
+  final appearance = await AppearanceController.load();
+  runApp(TideBootstrap(appearance: appearance));
 }
 
 class TideBootstrap extends StatefulWidget {
-  const TideBootstrap({super.key});
+  const TideBootstrap({super.key, required this.appearance});
+
+  final AppearanceController appearance;
 
   @override
   State<TideBootstrap> createState() => _TideBootstrapState();
@@ -48,7 +52,7 @@ class _TideBootstrapState extends State<TideBootstrap> {
             rescueNote: RescueNote(repository, now: DateTime.now),
             undoRescue: UndoRescue(repository),
           )..add(const TideStarted()),
-          child: const TideApp(home: TidePage()),
+          child: TideApp(home: const TidePage(), appearance: widget.appearance),
         ),
       );
 

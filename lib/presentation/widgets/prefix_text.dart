@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/tide_colors.dart';
+import '../../design/design_tokens.dart';
 import '../../core/utils/prefix_parser.dart';
 
 class PrefixText extends StatelessWidget {
@@ -12,9 +12,7 @@ class PrefixText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prefix = parsePrefix(content);
-    final bodyStyle = DefaultTextStyle.of(
-      context,
-    ).style.copyWith(fontSize: 17, height: 1.45);
+    final bodyStyle = Theme.of(context).textTheme.bodyMedium!;
     final prefixColor = _prefixColor(context, prefix ?? '');
     final rendered = RichText(
       text: TextSpan(
@@ -25,7 +23,10 @@ class PrefixText extends StatelessWidget {
           else ...[
             TextSpan(
               text: prefix,
-              style: TextStyle(color: prefixColor, fontWeight: FontWeight.w700),
+              style: bodyStyle.copyWith(
+                color: prefixColor,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             TextSpan(text: content.substring(prefix.length)),
           ],
@@ -41,10 +42,8 @@ class PrefixText extends StatelessWidget {
   }
 
   Color _prefixColor(BuildContext context, String prefix) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final palette = dark
-        ? const [Color(0xFFB7D7DE), TideColors.moon, Color(0xFFE2CAA2)]
-        : const [TideColors.ink, Color(0xFF315D70), Color(0xFF6A5434)];
+    final g = Theme.of(context).extension<GravityTheme>()!;
+    final palette = [g.accent, g.rescue, g.archive];
     return palette[prefixPaletteIndex(prefix, palette.length)];
   }
 }

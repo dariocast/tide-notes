@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../design/design_helpers.dart';
+import '../../design/design_tokens.dart';
+
 class SubmitIntent extends Intent {
   const SubmitIntent();
 }
@@ -60,66 +63,67 @@ class _NoteComposerState extends State<NoteComposer> {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-    key: const ValueKey('composer'),
-    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
-    child: Shortcuts(
-      shortcuts: const {
-        SingleActivator(LogicalKeyboardKey.enter, meta: true): SubmitIntent(),
-      },
-      child: Actions(
-        actions: {
-          SubmitIntent: CallbackAction<SubmitIntent>(
-            onInvoke: (_) {
-              _submit();
-              return null;
-            },
-          ),
+  Widget build(BuildContext context) {
+    final compact = sizeClassOf(context) == GSizeClass.compact;
+    return Padding(
+      key: const ValueKey('composer'),
+      padding: EdgeInsets.fromLTRB(
+        compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s2,
+        compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s3,
+      ),
+      child: Shortcuts(
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.enter, meta: true): SubmitIntent(),
         },
-        child: DecoratedBox(
-          key: const ValueKey('composer-surface'),
-          decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.surface.withValues(alpha: 0.72),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant,
-              width: 1,
+        child: Actions(
+          actions: {
+            SubmitIntent: CallbackAction<SubmitIntent>(
+              onInvoke: (_) {
+                _submit();
+                return null;
+              },
             ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  key: const ValueKey('composer-input'),
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  minLines: 2,
-                  maxLines: 5,
-                  keyboardType: TextInputType.multiline,
-                  decoration: const InputDecoration(
-                    hintText: 'Capture a thought…',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.fromLTRB(16, 12, 6, 12),
+          },
+          child: FocusRing(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: const ValueKey('composer-input'),
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    minLines: 2,
+                    maxLines: 5,
+                    keyboardType: TextInputType.multiline,
+                    decoration: const InputDecoration(
+                      hintText: 'Capture a thought…',
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: GSpace.s4,
+                        vertical: GSpace.s3,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              Semantics(
-                label: 'Save note',
-                button: true,
-                child: IconButton(
-                  tooltip: 'Save note',
-                  onPressed: _submit,
-                  icon: const Icon(Icons.arrow_upward_rounded),
+                Semantics(
+                  label: 'Save note',
+                  button: true,
+                  onTap: _submit,
+                  child: ExcludeSemantics(
+                    child: FilledButton(
+                      onPressed: _submit,
+                      child: const Icon(Icons.arrow_upward_rounded),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-            ],
+                const SizedBox(width: GSpace.s2),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

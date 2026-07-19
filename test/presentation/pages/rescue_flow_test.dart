@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tide/app.dart';
+import 'package:tide/design/design_tokens.dart';
+import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
@@ -107,10 +109,9 @@ void main() {
 
     await tester.drag(find.byType(Dismissible), const Offset(400, 0));
     await tester.pumpAndSettle();
-    expect(find.text('Rescued'), findsOneWidget);
-    expect(find.text('Undo'), findsOneWidget);
+    expect(find.text('Undo rescue'), findsOneWidget);
 
-    await tester.tap(find.text('Undo'));
+    await tester.tap(find.text('Undo rescue'));
     await tester.pumpAndSettle();
     expect(repository.undoCalls, 1);
   });
@@ -119,6 +120,7 @@ void main() {
     final stamp = timestamp;
     await tester.pumpWidget(
       MaterialApp(
+        theme: GravityAppTheme.light,
         home: MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
           child: Scaffold(
@@ -134,9 +136,9 @@ void main() {
     );
 
     final animated = tester.widget<AnimatedContainer>(
-      find.byType(AnimatedContainer),
+      find.byKey(const ValueKey('note-row')),
     );
-    expect(animated.duration, const Duration(milliseconds: 80));
+    expect(animated.duration, GMotion.colorFast);
     expect(stamp, timestamp);
   });
 }

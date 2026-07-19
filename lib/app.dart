@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
 
-import 'core/theme/tide_theme.dart';
+import 'design/appearance_controller.dart';
+import 'design/theme.dart';
 
-class TideApp extends StatelessWidget {
-  const TideApp({super.key, required this.home});
+class TideApp extends StatefulWidget {
+  const TideApp({super.key, required this.home, this.appearance});
 
   final Widget home;
+  final AppearanceController? appearance;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Tide',
-    debugShowCheckedModeBanner: false,
-    theme: TideTheme.light,
-    darkTheme: TideTheme.dark,
-    themeMode: ThemeMode.system,
-    home: home,
+  State<TideApp> createState() => _TideAppState();
+}
+
+class _TideAppState extends State<TideApp> {
+  late final AppearanceController _appearance =
+      widget.appearance ?? AppearanceController.inMemory();
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _appearance,
+    builder: (_, _) => AppearanceScope(
+      controller: _appearance,
+      child: MaterialApp(
+        title: 'Tide',
+        debugShowCheckedModeBanner: false,
+        theme: GravityAppTheme.light,
+        darkTheme: GravityAppTheme.dark,
+        themeMode: _appearance.themeMode,
+        home: widget.home,
+      ),
+    ),
   );
 }

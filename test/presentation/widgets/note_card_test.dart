@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tide/core/theme/tide_colors.dart';
-import 'package:tide/core/theme/tide_theme.dart';
+import 'package:tide/design/design_tokens.dart';
+import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/prefix_text.dart';
@@ -20,7 +20,7 @@ void main() {
   testWidgets('sinking text keeps readable contrast', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: TideTheme.light,
+        theme: GravityAppTheme.light,
         home: Scaffold(
           body: NoteCard(
             note: note,
@@ -40,7 +40,7 @@ void main() {
     );
     final span = richText.text as TextSpan;
     final color = span.style!.color!;
-    expect(_contrast(color, TideColors.pearl), greaterThanOrEqualTo(4.5));
+    expect(_contrast(color, GLight.surface), greaterThanOrEqualTo(4.5));
   });
 
   testWidgets('busy card cannot dispatch rescue', (tester) async {
@@ -48,7 +48,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: TideTheme.light,
+        theme: GravityAppTheme.light,
         home: Scaffold(
           body: NoteCard(
             note: note,
@@ -73,7 +73,7 @@ void main() {
     final rescued = note.copyWith(rescueCount: 2);
     await tester.pumpWidget(
       MaterialApp(
-        theme: TideTheme.light,
+        theme: GravityAppTheme.light,
         home: Scaffold(
           body: NoteCard(
             note: rescued,
@@ -101,7 +101,7 @@ void main() {
   testWidgets('inline editor keeps the flat row surface', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: TideTheme.light,
+        theme: GravityAppTheme.light,
         home: Scaffold(
           body: NoteCard(
             note: note,

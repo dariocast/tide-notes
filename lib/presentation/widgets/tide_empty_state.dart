@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../design/design_helpers.dart';
+import '../../design/design_tokens.dart';
+
 class TideEmptyState extends StatelessWidget {
   const TideEmptyState({super.key});
 
@@ -7,25 +10,25 @@ class TideEmptyState extends StatelessWidget {
   Widget build(BuildContext context) => Align(
     alignment: Alignment.topLeft,
     child: Padding(
-      padding: const EdgeInsets.fromLTRB(28, 32, 28, 24),
+      padding: EdgeInsets.fromLTRB(
+        sizeClassOf(context) == GSizeClass.compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s7,
+        sizeClassOf(context) == GSizeClass.compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s5,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Your stream is quiet.',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.displaySmall,
             textAlign: TextAlign.left,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: GSpace.s2),
           Text(
             'Capture anything above. Append freely, Review what sinks, Rescue what still matters.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-              height: 1.45,
-            ),
+            style: Theme.of(context).textTheme.bodyLarge,
             textAlign: TextAlign.left,
           ),
         ],
