@@ -81,7 +81,14 @@ abstract final class GDecor {
       crossOffset = 14.0,
       frameInset = 22.0,
       cornerMarkLength = 12.0,
-      cornerMarkThickness = 1.0;
+      cornerMarkThickness = 1.0,
+      railWidth = 2.5,
+      glyphStroke = 1.6,
+      hairline = 1.0;
+  static const hoverAlpha = 0.05,
+      pressAlpha = 0.09,
+      bloomAlpha = 0.55,
+      swipeGlyphAlpha = 0.16;
 }
 
 abstract final class GMotion {

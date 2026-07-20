@@ -46,6 +46,7 @@ class _NoteCardState extends State<NoteCard> {
   late final FocusNode _focusNode;
   TextEditingController? _controller;
   bool _editing = false;
+  bool _hovered = false;
 
   @override
   void initState() {
@@ -88,12 +89,9 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   Widget build(BuildContext context) {
-    final g =
-        Theme.of(context).extension<GravityTheme>() ??
-        (Theme.of(context).brightness == Brightness.dark
-            ? GravityTheme.dark
-            : GravityTheme.light);
+    final g = gravityOf(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
+    final isTop = widget.index == 0;
     final rescue = rescueMetadata(widget.note.rescueCount);
     final metadata = [
       relativeSurfacedAge(widget.note.surfacedAt, widget.now()),
@@ -103,17 +101,29 @@ class _NoteCardState extends State<NoteCard> {
       if (rescue.isNotEmpty) rescue,
     ].join(' • ');
 
+    final railColor = isTop
+        ? g.accent
+        : (_hovered
+              ? g.accentMuted.withValues(alpha: 0.7)
+              : g.ink.withValues(alpha: 0));
+
     final child = AnimatedContainer(
       key: const ValueKey('note-row'),
       width: double.infinity,
-      duration: context.motion.duration(GMotion.move),
+      duration: context.motion.duration(GMotion.color),
       curve: GMotion.settle,
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: g.lineSubtle, width: 1)),
+        color: _hovered ? g.ink.withValues(alpha: GDecor.hoverAlpha) : null,
+        border: Border(
+          left: BorderSide(color: railColor, width: GDecor.railWidth),
+          bottom: BorderSide(color: g.lineSubtle, width: GDecor.hairline),
+        ),
       ),
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? GSpace.s4 : GSpace.s6,
-        vertical: GSpace.s4,
+      padding: EdgeInsets.fromLTRB(
+        (compact ? GSpace.s4 : GSpace.s6) - GDecor.railWidth,
+        GSpace.s4,
+        compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s4,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +150,14 @@ class _NoteCardState extends State<NoteCard> {
     );
 
     final interactive = FocusRing(
-      child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
+      child: MouseRegion(
+        cursor: widget.busy
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
+      ),
     );
 
     if (widget.busy || !widget.rescueEnabled) {
@@ -157,14 +174,37 @@ class _NoteCardState extends State<NoteCard> {
       child: Dismissible(
         key: ValueKey(widget.note.id),
         direction: DismissDirection.startToEnd,
-        background: ColoredBox(
-          color: g.rescueSoft,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: compact ? GSpace.s4 : GSpace.s6),
-              child: Icon(Icons.arrow_upward_rounded, color: g.rescue),
+        background: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [g.rescueSoft, g.rescueSoft.withValues(alpha: 0)],
+              stops: const [0.55, 1],
             ),
+            border: Border(
+              left: BorderSide(color: g.rescue, width: GDecor.railWidth),
+            ),
+          ),
+          child: Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  left: (compact ? GSpace.s4 : GSpace.s6) - GDecor.railWidth,
+                ),
+                child: Icon(
+                  Icons.arrow_upward_rounded,
+                  color: g.rescue,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: GSpace.s3),
+              Icon(
+                Icons.arrow_upward_rounded,
+                color: g.rescue.withValues(alpha: GDecor.swipeGlyphAlpha),
+                size: 40,
+              ),
+            ],
           ),
         ),
         confirmDismiss: (_) async {

@@ -65,6 +65,7 @@ class _NoteComposerState extends State<NoteComposer> {
   @override
   Widget build(BuildContext context) {
     final compact = sizeClassOf(context) == GSizeClass.compact;
+    final g = gravityOf(context);
     return Padding(
       key: const ValueKey('composer'),
       padding: EdgeInsets.fromLTRB(
@@ -87,39 +88,57 @@ class _NoteComposerState extends State<NoteComposer> {
             ),
           },
           child: FocusRing(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const ValueKey('composer-input'),
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    minLines: 2,
-                    maxLines: 5,
-                    keyboardType: TextInputType.multiline,
-                    decoration: const InputDecoration(
-                      hintText: 'Capture a thought…',
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: GSpace.s4,
-                        vertical: GSpace.s3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: g.surfaceElevated,
+                border: Border(
+                  left: BorderSide(color: g.accent, width: GDecor.railWidth),
+                  top: BorderSide(color: g.lineSubtle),
+                  right: BorderSide(color: g.lineSubtle),
+                  bottom: BorderSide(color: g.lineSubtle),
+                ),
+                boxShadow: const [GShadows.shadowRaise],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const ValueKey('composer-input'),
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      minLines: 2,
+                      maxLines: 5,
+                      keyboardType: TextInputType.multiline,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        hintText: 'Capture a thought…',
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: GSpace.s4,
+                          vertical: GSpace.s3,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Semantics(
-                  label: 'Save note',
-                  button: true,
-                  onTap: _submit,
-                  child: ExcludeSemantics(
-                    child: FilledButton(
-                      onPressed: _submit,
-                      child: const Icon(Icons.arrow_upward_rounded),
+                  Padding(
+                    padding: const EdgeInsets.all(GSpace.s2),
+                    child: Semantics(
+                      label: 'Save note',
+                      button: true,
+                      onTap: _submit,
+                      child: ExcludeSemantics(
+                        child: FilledButton(
+                          onPressed: _submit,
+                          child: const Icon(Icons.arrow_upward_rounded),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: GSpace.s2),
-              ],
+                ],
+              ),
             ),
           ),
         ),

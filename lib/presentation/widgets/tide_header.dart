@@ -28,18 +28,26 @@ class TideHeader extends StatelessWidget {
         GSpace.s2,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tide', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: GSpace.s1),
+                Row(
+                  children: [
+                    const TideGlyph(size: 18),
+                    const SizedBox(width: GSpace.s3),
+                    Text('Tide', style: Theme.of(context).textTheme.titleLarge),
+                  ],
+                ),
+                const SizedBox(height: GSpace.s2),
                 Text(
                   '$countLabel • $date',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: g.textMuted),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: g.textMuted,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ],
             ),
