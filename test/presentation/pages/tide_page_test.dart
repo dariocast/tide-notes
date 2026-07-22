@@ -162,6 +162,56 @@ void main() {
     expect(appearance.selection, TideThemeSelection.abyss);
   });
 
+  testWidgets('macOS settings popover selects Abyss theme', (tester) async {
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+    });
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      final appearance = AppearanceController.inMemory();
+      await pumpPage(tester, appearance: appearance);
+
+      await tester.tap(find.bySemanticsLabel('Appearance settings'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<CheckedPopupMenuItem<TideThemeSelection>>(
+              find.widgetWithText(
+                CheckedPopupMenuItem<TideThemeSelection>,
+                'System',
+              ),
+            )
+            .checked,
+        isTrue,
+      );
+      expect(
+        tester
+            .widget<CheckedPopupMenuItem<TideThemeSelection>>(
+              find.widgetWithText(
+                CheckedPopupMenuItem<TideThemeSelection>,
+                'Abyss',
+              ),
+            )
+            .checked,
+        isFalse,
+      );
+
+      // warnIfMissed is disabled: PopupMenuButton's route positions its
+      // overlay via a CustomSingleChildLayoutBox that the test binding's
+      // static hit-test probe doesn't account for, producing a false-positive
+      // warning even though the tap reliably reaches the menu item (as
+      // confirmed by the selection assertion below).
+      await tester.tap(find.text('Abyss'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(appearance.selection, TideThemeSelection.abyss);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('wide macOS puts controls beside note stream', (tester) async {
     addTearDown(() {
       tester.view.resetPhysicalSize();
