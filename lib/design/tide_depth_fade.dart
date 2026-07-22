@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'design_helpers.dart';
+import 'design_tokens.dart';
 
 /// Pure viewport-relative depth math for the Tide note stream.
 ///
@@ -39,17 +40,25 @@ class TideDepthFade extends StatelessWidget {
     return ShaderMask(
       key: const ValueKey('tide-depth-mask'),
       blendMode: BlendMode.dstIn,
-      shaderCallback: (bounds) => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.white,
-          Colors.white,
-          Colors.white.withValues(alpha: colors.depthFloor),
-        ],
-        stops: const [0, TideDepthModel.fullPresenceEnd, 1],
-      ).createShader(bounds),
+      shaderCallback: (bounds) => buildGradient(colors).createShader(bounds),
       child: child,
     );
   }
+
+  /// The bottom-only alpha gradient used to mask [child]: full presence
+  /// (opaque white) through [TideDepthModel.fullPresenceEnd] of the
+  /// viewport, then fading toward the theme's [TideColors.depthFloor] by
+  /// the bottom. Extracted so the gradient's direction and stops can be
+  /// asserted on directly, independent of rendering.
+  @visibleForTesting
+  static LinearGradient buildGradient(TideColors colors) => LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Colors.white,
+      Colors.white,
+      Colors.white.withValues(alpha: colors.depthFloor),
+    ],
+    stops: const [0, TideDepthModel.fullPresenceEnd, 1],
+  );
 }

@@ -38,6 +38,14 @@ void main() {
     });
   }
 
+  test('depth gradient is anchored top-to-bottom with the right stops', () {
+    final gradient = TideDepthFade.buildGradient(TideColors.foam);
+
+    expect(gradient.begin, Alignment.topCenter);
+    expect(gradient.end, Alignment.bottomCenter);
+    expect(gradient.stops, const [0, TideDepthModel.fullPresenceEnd, 1]);
+  });
+
   testWidgets('contains a bottom-only ShaderMask when enabled', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

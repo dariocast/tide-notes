@@ -501,54 +501,53 @@ void main() {
     expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
   });
 
-  testWidgets(
-    'a note scrolled toward the top of the viewport recovers full presence',
-    (tester) async {
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-      tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = const Size(400, 700);
+  testWidgets('scrolling a note toward the top of the viewport monotonically '
+      'increases its opacity-at-fraction (gradient direction itself is '
+      'covered by the unit test in tide_depth_fade_test.dart)', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 700);
 
-      final notes = List.generate(40, (index) => makeNote('$index'));
-      await pumpPage(tester, notes: notes);
-      await tester.pump();
+    final notes = List.generate(40, (index) => makeNote('$index'));
+    await pumpPage(tester, notes: notes);
+    await tester.pump();
 
-      final noteList = find.byKey(const ValueKey('note-list'));
-      final viewportHeight = tester.getSize(noteList).height;
-      final listTop = tester.getTopLeft(noteList).dy;
-      final noteHeight = tester
-          .getSize(find.byKey(const ValueKey('0')).first)
-          .height;
-      final target = find.byKey(const ValueKey('20')).first;
+    final noteList = find.byKey(const ValueKey('note-list'));
+    final viewportHeight = tester.getSize(noteList).height;
+    final listTop = tester.getTopLeft(noteList).dy;
+    final noteHeight = tester
+        .getSize(find.byKey(const ValueKey('0')).first)
+        .height;
+    final target = find.byKey(const ValueKey('20')).first;
 
-      double fractionOf(Finder finder) =>
-          (tester.getTopLeft(finder).dy - listTop) / viewportHeight;
+    double fractionOf(Finder finder) =>
+        (tester.getTopLeft(finder).dy - listTop) / viewportHeight;
 
-      // Bring note 20 into the lower band of the viewport first.
-      await tester.drag(
-        noteList,
-        Offset(0, -(20 * noteHeight - viewportHeight * 0.8)),
-      );
-      await tester.pump();
-      final lowerFraction = fractionOf(target);
+    // Bring note 20 into the lower band of the viewport first.
+    await tester.drag(
+      noteList,
+      Offset(0, -(20 * noteHeight - viewportHeight * 0.8)),
+    );
+    await tester.pump();
+    final lowerFraction = fractionOf(target);
 
-      // Scroll further so the same note rises toward the top of the
-      // viewport.
-      await tester.drag(noteList, Offset(0, -(noteHeight * 3)));
-      await tester.pump();
-      final risenFraction = fractionOf(target);
+    // Scroll further so the same note rises toward the top of the
+    // viewport.
+    await tester.drag(noteList, Offset(0, -(noteHeight * 3)));
+    await tester.pump();
+    final risenFraction = fractionOf(target);
 
-      expect(risenFraction, lessThan(lowerFraction));
-      const floor = 0.8;
-      expect(
-        TideDepthModel.opacityAt(risenFraction, floor: floor),
-        greaterThan(TideDepthModel.opacityAt(lowerFraction, floor: floor)),
-      );
-      expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
-    },
-  );
+    expect(risenFraction, lessThan(lowerFraction));
+    const floor = 0.8;
+    expect(
+      TideDepthModel.opacityAt(risenFraction, floor: floor),
+      greaterThan(TideDepthModel.opacityAt(lowerFraction, floor: floor)),
+    );
+    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
+  });
 }
 
 final class PageRepository implements NoteRepository {
