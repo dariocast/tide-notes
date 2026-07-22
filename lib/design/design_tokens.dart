@@ -10,7 +10,7 @@ abstract final class GLight {
   static const ink = Color(0xFF1A1714);
   static const textSecondary = Color(0xFF332C25);
   static const textMuted = Color(0xFF51483F);
-  static const textGhost = Color(0xFF7A7067);
+  static const textGhost = Color(0xFF6C6259);
   static const dotNeutral = Color(0xFF3F352B);
   static const accent = Color(0xFF9D6B3D);
   static const accentMuted = Color(0xFFC9A67A);

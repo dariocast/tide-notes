@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
+import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
@@ -175,6 +176,99 @@ void main() {
     }
   });
 
+  testWidgets('wide macOS supports large text without accessibility issues', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      await pumpPage(
+        tester,
+        notes: [makeNote('top'), makeNote('middle'), makeNote('bottom')],
+        mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+        theme: GravityAppTheme.light,
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('desktop-split-layout')),
+        findsOneWidget,
+      );
+      expect(
+        _contrast(GLight.textGhost, GLight.bgBottom),
+        greaterThanOrEqualTo(4.6),
+      );
+      expect(tester.takeException(), isNull);
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    } finally {
+      semantics.dispose();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('note stream keeps its scroll position across a breakpoint', (
+    tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      final notes = List.generate(100, (index) => makeNote('$index'));
+      await pumpPage(tester, notes: notes);
+      await tester.pump();
+
+      final noteList = find.byKey(const ValueKey('note-list'));
+      await tester.drag(noteList, const Offset(0, -600));
+      await tester.pumpAndSettle();
+      final beforeResize = tester
+          .state<ScrollableState>(
+            find.descendant(of: noteList, matching: find.byType(Scrollable)),
+          )
+          .position
+          .pixels;
+      expect(beforeResize, greaterThan(0));
+
+      tester.view.physicalSize = const Size(1200, 800);
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('desktop-split-layout')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .state<ScrollableState>(
+              find.descendant(of: noteList, matching: find.byType(Scrollable)),
+            )
+            .position
+            .pixels,
+        closeTo(beforeResize, 0.01),
+      );
+    } finally {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   testWidgets('composer uses the tokenized capture field', (tester) async {
     await pumpPage(tester);
 
@@ -211,9 +305,11 @@ void main() {
         findsNothing,
       );
     }
+    final shell = find.byType(TideShell);
+    expect(shell, findsOneWidget);
     expect(
       find.descendant(
-        of: find.byKey(const ValueKey('tide-shell')),
+        of: shell,
         matching: find.ancestor(
           of: find.byType(TideHeader),
           matching: find.byType(CustomPaint),
@@ -293,6 +389,18 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     semantics.dispose();
   });
+}
+
+double _contrast(Color foreground, Color background) {
+  final foregroundLuminance = foreground.computeLuminance();
+  final backgroundLuminance = background.computeLuminance();
+  final lighter = foregroundLuminance > backgroundLuminance
+      ? foregroundLuminance
+      : backgroundLuminance;
+  final darker = foregroundLuminance > backgroundLuminance
+      ? backgroundLuminance
+      : foregroundLuminance;
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 final class PageRepository implements NoteRepository {
