@@ -20,16 +20,28 @@ class _TideAppState extends State<TideApp> {
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _appearance,
-    builder: (_, _) => AppearanceScope(
-      controller: _appearance,
-      child: MaterialApp(
-        title: 'Tide',
-        debugShowCheckedModeBanner: false,
-        theme: TideAppTheme.foam,
-        darkTheme: TideAppTheme.deepTide,
-        themeMode: _appearance.themeMode,
-        home: widget.home,
-      ),
-    ),
+    builder: (_, _) {
+      final selection = _appearance.selection;
+      final themeMode = switch (selection) {
+        TideThemeSelection.system => ThemeMode.system,
+        TideThemeSelection.foam => ThemeMode.light,
+        TideThemeSelection.deepTide ||
+        TideThemeSelection.abyss => ThemeMode.dark,
+      };
+      final darkTheme = selection == TideThemeSelection.abyss
+          ? TideAppTheme.abyss
+          : TideAppTheme.deepTide;
+      return AppearanceScope(
+        controller: _appearance,
+        child: MaterialApp(
+          title: 'Tide',
+          debugShowCheckedModeBanner: false,
+          theme: TideAppTheme.foam,
+          darkTheme: darkTheme,
+          themeMode: themeMode,
+          home: widget.home,
+        ),
+      );
+    },
   );
 }

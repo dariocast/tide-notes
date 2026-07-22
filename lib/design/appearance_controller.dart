@@ -1,50 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppearanceController extends ChangeNotifier {
-  AppearanceController._(
-    this._preferences,
-    this._themeMode,
-    this._motionEnabled,
-  );
+/// The user-facing Tide appearance choices. `system` follows the OS
+/// brightness with Foam/Deep Tide; the others force a specific palette,
+/// including the OLED-oriented `abyss` theme that has no `ThemeMode`
+/// equivalent.
+enum TideThemeSelection { system, foam, deepTide, abyss }
 
-  static const _themeKey = 'theme_mode';
-  static const _motionKey = 'motion_enabled';
+class AppearanceController extends ChangeNotifier {
+  AppearanceController._(this._preferences, this._selection);
+
+  static const _themeKey = 'tide_theme';
   final SharedPreferences? _preferences;
-  ThemeMode _themeMode;
-  bool _motionEnabled;
+  TideThemeSelection _selection;
+
+  TideThemeSelection get selection => _selection;
 
   static Future<AppearanceController> load() async {
-    final preferences = await SharedPreferences.getInstance();
-    final theme = switch (preferences.getString(_themeKey)) {
-      'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
-    };
-    return AppearanceController._(
-      preferences,
-      theme,
-      preferences.getBool(_motionKey) ?? true,
-    );
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      final stored = preferences.getString(_themeKey);
+      final selection = TideThemeSelection.values.firstWhere(
+        (value) => value.name == stored,
+        orElse: () => TideThemeSelection.system,
+      );
+      return AppearanceController._(preferences, selection);
+    } catch (_) {
+      return AppearanceController.inMemory();
+    }
   }
 
-  factory AppearanceController.inMemory() =>
-      AppearanceController._(null, ThemeMode.system, true);
-  ThemeMode get themeMode => _themeMode;
-  bool get motionEnabled => _motionEnabled;
+  factory AppearanceController.inMemory({
+    TideThemeSelection selection = TideThemeSelection.system,
+  }) => AppearanceController._(null, selection);
 
-  Future<void> setThemeMode(ThemeMode value) async {
-    if (_themeMode == value) return;
-    _themeMode = value;
+  Future<void> setSelection(TideThemeSelection value) async {
+    if (_selection == value) return;
+    _selection = value;
     notifyListeners();
-    await _preferences?.setString(_themeKey, value.name);
-  }
-
-  Future<void> setMotionEnabled(bool value) async {
-    if (_motionEnabled == value) return;
-    _motionEnabled = value;
-    notifyListeners();
-    await _preferences?.setBool(_motionKey, value);
+    try {
+      await _preferences?.setString(_themeKey, value.name);
+    } catch (_) {}
   }
 }
 

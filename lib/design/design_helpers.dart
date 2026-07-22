@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'appearance_controller.dart';
 import 'design_tokens.dart';
 
 enum GSizeClass { compact, medium, expanded }
@@ -100,10 +99,7 @@ class TideMotion {
   final BuildContext context;
 
   Duration duration(Duration value) =>
-      MediaQuery.disableAnimationsOf(context) ||
-          !(AppearanceScope.maybeOf(context)?.motionEnabled ?? true)
-      ? GMotion.colorFast
-      : value;
+      MediaQuery.disableAnimationsOf(context) ? GMotion.colorFast : value;
 }
 
 extension TideMotionContext on BuildContext {

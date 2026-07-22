@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
+import 'package:tide/design/appearance_controller.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
@@ -32,6 +33,7 @@ void main() {
     MediaQueryData? mediaQuery,
     ThemeData? theme,
     DateTime Function()? now,
+    AppearanceController? appearance,
   }) async {
     final repository = PageRepository();
     final bloc = TideBloc(
@@ -60,7 +62,7 @@ void main() {
     }
     await tester.pumpWidget(
       theme == null
-          ? TideApp(home: page)
+          ? TideApp(home: page, appearance: appearance)
           : MaterialApp(theme: theme, home: page),
     );
     if (notes.isNotEmpty) {
@@ -146,6 +148,18 @@ void main() {
     expect(find.text('Tide'), findsOneWidget);
     expect(find.textContaining('2 notes captured'), findsOneWidget);
     expect(find.textContaining('Jul 19'), findsOneWidget);
+  });
+
+  testWidgets('mobile settings sheet selects Abyss theme', (tester) async {
+    final appearance = AppearanceController.inMemory();
+    await pumpPage(tester, appearance: appearance);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Abyss'));
+    await tester.pumpAndSettle();
+
+    expect(appearance.selection, TideThemeSelection.abyss);
   });
 
   testWidgets('wide macOS puts controls beside note stream', (tester) async {
