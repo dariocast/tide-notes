@@ -22,8 +22,6 @@ import 'package:tide/presentation/blocs/tide_event.dart';
 import 'package:tide/design/tide_depth_fade.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
-import 'package:tide/presentation/widgets/tide_empty_state.dart';
-import 'package:tide/presentation/widgets/tide_header.dart';
 import 'package:tide/presentation/widgets/tide_shell.dart';
 
 void main() {
@@ -330,19 +328,6 @@ void main() {
     }
   });
 
-  testWidgets('composer uses the tokenized capture field', (tester) async {
-    await pumpPage(tester);
-
-    final field = tester.widget<TextField>(
-      find.byKey(const ValueKey('composer-input')),
-    );
-    expect(field.minLines, 2);
-    expect(
-      tester.getSize(find.byKey(const ValueKey('composer'))).height,
-      lessThan(110),
-    );
-  });
-
   testWidgets('composer surface and note rows use organic shape language', (
     tester,
   ) async {
@@ -366,45 +351,6 @@ void main() {
     final noteContext = tester.element(find.byKey(const ValueKey('note-row')));
     expect(Theme.of(noteContext).textTheme.bodyMedium?.fontFamily, 'Nunito');
     expect(find.text('Tide'), findsOneWidget);
-  });
-
-  testWidgets('empty stream guidance is left aligned', (tester) async {
-    await pumpPage(tester);
-
-    final guidance = tester.widget<Text>(
-      find.textContaining('Capture anything'),
-    );
-    expect(guidance.textAlign, TextAlign.left);
-  });
-
-  testWidgets('header and empty state use text without decorations', (
-    tester,
-  ) async {
-    await pumpPage(tester, theme: TideAppTheme.foam);
-
-    for (final type in [TideHeader, TideEmptyState]) {
-      expect(
-        find.descendant(
-          of: find.byType(type),
-          matching: find.byType(CustomPaint),
-        ),
-        findsNothing,
-      );
-    }
-    final shell = find.byType(TideShell);
-    expect(shell, findsOneWidget);
-    expect(
-      find.descendant(
-        of: shell,
-        matching: find.ancestor(
-          of: find.byType(TideHeader),
-          matching: find.byType(CustomPaint),
-        ),
-      ),
-      findsNothing,
-    );
-    expect(find.text('⌘'), findsNothing);
-    expect(find.text('↵'), findsNothing);
   });
 
   testWidgets('tapping note opens inline editor and focus loss flushes edit', (

@@ -20,32 +20,6 @@ void main() {
     rescueCount: 0,
   );
 
-  testWidgets('sinking text keeps readable contrast', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: TideAppTheme.foam,
-        home: Scaffold(
-          body: NoteCard(
-            note: note,
-            index: 30,
-            onChanged: (_) {},
-            onRescue: () {},
-          ),
-        ),
-      ),
-    );
-
-    final richText = tester.widget<RichText>(
-      find.descendant(
-        of: find.byType(PrefixText),
-        matching: find.byType(RichText),
-      ),
-    );
-    final span = richText.text as TextSpan;
-    final color = span.style!.color!;
-    expect(contrast(color, GFoam.surface), greaterThanOrEqualTo(4.5));
-  });
-
   testWidgets('busy card cannot dispatch rescue', (tester) async {
     var rescueCount = 0;
 

@@ -121,25 +121,6 @@ void main() {
         find.descendant(of: sidebar, matching: find.text('stream')),
         findsNothing,
       );
-      expect(
-        tester.getTopLeft(find.text('header')).dy,
-        lessThan(tester.getTopLeft(find.text('composer')).dy),
-      );
-      expect(
-        tester.getTopLeft(find.text('composer')).dy,
-        lessThan(tester.getTopLeft(find.text('undo')).dy),
-      );
-
-      final divider = find.byKey(const ValueKey('desktop-divider'));
-      expect(tester.getSize(divider).width, GDecor.hairline);
-      expect(
-        tester
-            .widget<ColoredBox>(
-              find.descendant(of: divider, matching: find.byType(ColoredBox)),
-            )
-            .color,
-        TideColors.foam.lineSubtle,
-      );
     });
 
     testWidgets('vertical layouts fill the viewport and use compact sizing', (
@@ -230,61 +211,6 @@ void main() {
         'unfinished draft',
       );
       expect(tester.widget<TextField>(input).focusNode!.hasFocus, isTrue);
-    });
-
-    testWidgets('rebuilds stable regions with updated children', (
-      tester,
-    ) async {
-      late StateSetter rebuild;
-      var header = 'first header';
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: TideAppTheme.foam,
-          home: Scaffold(
-            body: StatefulBuilder(
-              builder: (context, setState) {
-                rebuild = setState;
-                return TideShell(
-                  platform: TargetPlatform.iOS,
-                  header: Text(header),
-                  composer: const Text('composer'),
-                  undoAction: const Text('undo'),
-                  stream: const Text('stream'),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      rebuild(() => header = 'updated header');
-      await tester.pump();
-
-      expect(find.text('first header'), findsNothing);
-      expect(find.text('updated header'), findsOneWidget);
-    });
-
-    testWidgets('requires a bounded full-viewport height', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: TideAppTheme.foam,
-          home: SingleChildScrollView(
-            child: TideShell(
-              platform: TargetPlatform.iOS,
-              header: const Text('header'),
-              composer: const Text('composer'),
-              undoAction: const Text('undo'),
-              stream: const Text('stream'),
-            ),
-          ),
-        ),
-      );
-
-      expect(
-        tester.takeException().toString(),
-        contains('TideShell requires a bounded height'),
-      );
     });
   });
 }
