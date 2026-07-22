@@ -11,7 +11,11 @@ TideShellLayout tideShellLayoutFor(TargetPlatform platform, double width) =>
     ? TideShellLayout.desktopSplit
     : TideShellLayout.vertical;
 
-class TideShell extends StatelessWidget {
+/// Responsive full-viewport composition for Tide's primary regions.
+///
+/// The parent must provide a bounded height because both layouts use flex
+/// children that fill the remaining viewport space.
+class TideShell extends StatefulWidget {
   const TideShell({
     super.key,
     required this.header,
@@ -28,10 +32,27 @@ class TideShell extends StatelessWidget {
   final TargetPlatform? platform;
 
   @override
+  State<TideShell> createState() => _TideShellState();
+}
+
+class _TideShellState extends State<TideShell> {
+  final _headerKey = GlobalKey(debugLabel: 'TideShell header');
+  final _composerKey = GlobalKey(debugLabel: 'TideShell composer');
+  final _undoActionKey = GlobalKey(debugLabel: 'TideShell undo action');
+  final _streamKey = GlobalKey(debugLabel: 'TideShell stream');
+
+  Widget _region(GlobalKey key, Widget child) =>
+      KeyedSubtree(key: key, child: child);
+
+  @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
+      assert(
+        constraints.hasBoundedHeight,
+        'TideShell requires a bounded height from a full-viewport parent.',
+      );
       final layout = tideShellLayoutFor(
-        platform ?? defaultTargetPlatform,
+        widget.platform ?? defaultTargetPlatform,
         constraints.maxWidth,
       );
       return switch (layout) {
@@ -49,11 +70,11 @@ class TideShell extends StatelessWidget {
         child: Column(
           key: const ValueKey('vertical-layout'),
           children: [
-            header,
-            composer,
-            undoAction,
+            _region(_headerKey, widget.header),
+            _region(_composerKey, widget.composer),
+            _region(_undoActionKey, widget.undoAction),
             const Hairline(indent: GSpace.s4),
-            Expanded(child: stream),
+            Expanded(child: _region(_streamKey, widget.stream)),
           ],
         ),
       ),
@@ -72,13 +93,20 @@ class TideShell extends StatelessWidget {
             SizedBox(
               key: const ValueKey('desktop-sidebar'),
               width: GLayout.desktopSidebar,
-              child: Column(children: [header, composer, undoAction]),
+              child: Column(
+                children: [
+                  _region(_headerKey, widget.header),
+                  _region(_composerKey, widget.composer),
+                  _region(_undoActionKey, widget.undoAction),
+                ],
+              ),
             ),
             SizedBox(
+              key: const ValueKey('desktop-divider'),
               width: GDecor.hairline,
               child: ColoredBox(color: gravityOf(context).lineSubtle),
             ),
-            Expanded(child: stream),
+            Expanded(child: _region(_streamKey, widget.stream)),
           ],
         ),
       ),
