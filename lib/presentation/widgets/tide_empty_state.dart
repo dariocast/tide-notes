@@ -22,72 +22,26 @@ class TideEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TideGlyph(size: 40, color: g.accentMuted),
-            const SizedBox(height: GSpace.s5),
             Text(
               'Your stream is quiet.',
-              style: Theme.of(context).textTheme.displaySmall,
+              style: Theme.of(context).textTheme.headlineMedium,
               textAlign: TextAlign.left,
             ),
             const SizedBox(height: GSpace.s3),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: GLayout.contentNarrow),
+              constraints: const BoxConstraints(
+                maxWidth: GLayout.contentNarrow,
+              ),
               child: Text(
-                'Capture anything above. Append freely, Review what sinks, Rescue what still matters.',
+                'Capture anything above. Append freely, review what sinks, rescue what still matters.',
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: g.textMuted),
                 textAlign: TextAlign.left,
               ),
             ),
-            const SizedBox(height: GSpace.s6),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const _Kbd('⌘'),
-                const SizedBox(width: GSpace.s1),
-                const _Kbd('↵'),
-                const SizedBox(width: GSpace.s3),
-                Text(
-                  'to capture',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: g.textGhost),
-                ),
-              ],
-            ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// A minimal keycap chip used in onboarding hints.
-class _Kbd extends StatelessWidget {
-  const _Kbd(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final g = gravityOf(context);
-    return Container(
-      constraints: const BoxConstraints(minWidth: 26),
-      padding: const EdgeInsets.symmetric(
-        horizontal: GSpace.s2,
-        vertical: GSpace.s1,
-      ),
-      decoration: BoxDecoration(
-        color: g.surfaceElevated,
-        border: Border.all(color: g.lineSubtle),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: g.textMuted, letterSpacing: 0),
       ),
     );
   }

@@ -2,6 +2,32 @@ import 'package:flutter/material.dart';
 
 import 'design_tokens.dart';
 
+TextStyle _withoutFontFamily(TextStyle style) => TextStyle(
+  inherit: style.inherit,
+  color: style.color,
+  backgroundColor: style.backgroundColor,
+  fontSize: style.fontSize,
+  fontWeight: style.fontWeight,
+  fontStyle: style.fontStyle,
+  letterSpacing: style.letterSpacing,
+  wordSpacing: style.wordSpacing,
+  textBaseline: style.textBaseline,
+  height: style.height,
+  leadingDistribution: style.leadingDistribution,
+  locale: style.locale,
+  foreground: style.foreground,
+  background: style.background,
+  shadows: style.shadows,
+  fontFeatures: style.fontFeatures,
+  fontVariations: style.fontVariations,
+  decoration: style.decoration,
+  decorationColor: style.decorationColor,
+  decorationStyle: style.decorationStyle,
+  decorationThickness: style.decorationThickness,
+  debugLabel: style.debugLabel,
+  overflow: style.overflow,
+);
+
 abstract final class GravityAppTheme {
   static ThemeData get light => _build(Brightness.light, GravityTheme.light);
   static ThemeData get dark => _build(Brightness.dark, GravityTheme.dark);
@@ -20,7 +46,6 @@ abstract final class GravityAppTheme {
     );
     final text = TextTheme(
       displaySmall: TextStyle(
-        fontFamily: 'InstrumentSerif',
         fontSize: 44,
         height: 1.06,
         fontWeight: FontWeight.w400,
@@ -28,7 +53,6 @@ abstract final class GravityAppTheme {
         color: g.ink,
       ),
       headlineMedium: TextStyle(
-        fontFamily: 'InstrumentSerif',
         fontSize: 32,
         height: 1.3,
         fontWeight: FontWeight.w400,
@@ -36,7 +60,6 @@ abstract final class GravityAppTheme {
         color: g.ink,
       ),
       headlineSmall: TextStyle(
-        fontFamily: 'InstrumentSerif',
         fontSize: 24,
         height: 1.3,
         fontWeight: FontWeight.w400,
@@ -44,7 +67,6 @@ abstract final class GravityAppTheme {
         color: g.accentMuted,
       ),
       titleLarge: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 20,
         height: 1.5,
         fontWeight: FontWeight.w700,
@@ -52,28 +74,24 @@ abstract final class GravityAppTheme {
         color: g.ink,
       ),
       bodyLarge: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 18,
         height: 1.6,
         fontWeight: FontWeight.w400,
         color: g.textSecondary,
       ),
       bodyMedium: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 16,
         height: 1.5,
         fontWeight: FontWeight.w400,
         color: g.ink,
       ),
       labelLarge: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 15,
         height: 1,
         fontWeight: FontWeight.w600,
         letterSpacing: -.16,
       ),
       labelSmall: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 12,
         height: 1.2,
         fontWeight: FontWeight.w700,
@@ -81,7 +99,6 @@ abstract final class GravityAppTheme {
         color: g.textMuted,
       ),
       bodySmall: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 13,
         height: 1.4,
         fontWeight: FontWeight.w500,
@@ -89,7 +106,7 @@ abstract final class GravityAppTheme {
       ),
     );
     final shape = const RoundedRectangleBorder();
-    return ThemeData(
+    final theme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
@@ -97,7 +114,6 @@ abstract final class GravityAppTheme {
       extensions: [g],
       splashFactory: NoSplash.splashFactory,
       visualDensity: VisualDensity.standard,
-      textTheme: text,
       cardTheme: CardThemeData(
         shape: shape,
         surfaceTintColor: Colors.transparent,
@@ -171,6 +187,26 @@ abstract final class GravityAppTheme {
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: g.accent,
         selectionColor: g.accent.withValues(alpha: .24),
+      ),
+    );
+    final defaults = theme.textTheme;
+    return theme.copyWith(
+      textTheme: TextTheme(
+        displayLarge: _withoutFontFamily(defaults.displayLarge!),
+        displayMedium: _withoutFontFamily(defaults.displayMedium!),
+        displaySmall: text.displaySmall,
+        headlineLarge: _withoutFontFamily(defaults.headlineLarge!),
+        headlineMedium: text.headlineMedium,
+        headlineSmall: text.headlineSmall,
+        titleLarge: text.titleLarge,
+        titleMedium: _withoutFontFamily(defaults.titleMedium!),
+        titleSmall: _withoutFontFamily(defaults.titleSmall!),
+        bodyLarge: text.bodyLarge,
+        bodyMedium: text.bodyMedium,
+        bodySmall: text.bodySmall,
+        labelLarge: text.labelLarge,
+        labelMedium: _withoutFontFamily(defaults.labelMedium!),
+        labelSmall: text.labelSmall,
       ),
     );
   }

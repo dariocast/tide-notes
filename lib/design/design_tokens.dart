@@ -10,7 +10,7 @@ abstract final class GLight {
   static const ink = Color(0xFF1A1714);
   static const textSecondary = Color(0xFF332C25);
   static const textMuted = Color(0xFF51483F);
-  static const textGhost = Color(0xFF7A7067);
+  static const textGhost = Color(0xFF665C53);
   static const dotNeutral = Color(0xFF3F352B);
   static const accent = Color(0xFF9D6B3D);
   static const accentMuted = Color(0xFFC9A67A);
@@ -24,7 +24,6 @@ abstract final class GLight {
   static const dangerSoft = Color(0xFFF5E0DF);
   static const lineSubtle = Color(0x1F1A1714);
   static const lineStrong = Color(0x611A1714);
-  static const cornerInk = Color(0x571A1714);
 }
 
 abstract final class GDark {
@@ -36,7 +35,7 @@ abstract final class GDark {
   static const ink = Color(0xFFF0EAE2);
   static const textSecondary = Color(0xFFD5CCC1);
   static const textMuted = Color(0xFFA79C8F);
-  static const textGhost = Color(0xFF7E756B);
+  static const textGhost = Color(0xFF8C8379);
   static const dotNeutral = Color(0xFFC9BEB1);
   static const accent = Color(0xFFC08B58);
   static const accentMuted = Color(0xFF8A6A48);
@@ -50,7 +49,6 @@ abstract final class GDark {
   static const dangerSoft = Color(0xFF392422);
   static const lineSubtle = Color(0x1FF0EAE2);
   static const lineStrong = Color(0x61F0EAE2);
-  static const cornerInk = Color(0x57F0EAE2);
 }
 
 abstract final class GSpace {
@@ -69,6 +67,8 @@ abstract final class GLayout {
   static const contentMax = 720.0,
       contentNarrow = 640.0,
       contentWide = 800.0,
+      desktopMax = 1040.0,
+      desktopSidebar = 336.0,
       headerHeight = 72.0,
       minTouchTarget = 48.0,
       bpMedium = 600.0,
@@ -79,11 +79,7 @@ abstract final class GDecor {
   static const crossSize = 19.0,
       crossThickness = 1.0,
       crossOffset = 14.0,
-      frameInset = 22.0,
-      cornerMarkLength = 12.0,
-      cornerMarkThickness = 1.0,
       railWidth = 2.5,
-      glyphStroke = 1.6,
       hairline = 1.0;
   static const hoverAlpha = 0.05,
       pressAlpha = 0.09,
@@ -142,7 +138,6 @@ class GravityTheme extends ThemeExtension<GravityTheme> {
     required this.dangerSoft,
     required this.lineSubtle,
     required this.lineStrong,
-    required this.cornerInk,
   });
   final Color bgTop,
       bgMid,
@@ -165,8 +160,7 @@ class GravityTheme extends ThemeExtension<GravityTheme> {
       danger,
       dangerSoft,
       lineSubtle,
-      lineStrong,
-      cornerInk;
+      lineStrong;
   static const light = GravityTheme(
     bgTop: GLight.bgTop,
     bgMid: GLight.bgMid,
@@ -190,7 +184,6 @@ class GravityTheme extends ThemeExtension<GravityTheme> {
     dangerSoft: GLight.dangerSoft,
     lineSubtle: GLight.lineSubtle,
     lineStrong: GLight.lineStrong,
-    cornerInk: GLight.cornerInk,
   );
   static const dark = GravityTheme(
     bgTop: GDark.bgTop,
@@ -215,7 +208,6 @@ class GravityTheme extends ThemeExtension<GravityTheme> {
     dangerSoft: GDark.dangerSoft,
     lineSubtle: GDark.lineSubtle,
     lineStrong: GDark.lineStrong,
-    cornerInk: GDark.cornerInk,
   );
   @override
   GravityTheme copyWith() => this;
@@ -246,7 +238,6 @@ class GravityTheme extends ThemeExtension<GravityTheme> {
       dangerSoft: l(dangerSoft, other.dangerSoft),
       lineSubtle: l(lineSubtle, other.lineSubtle),
       lineStrong: l(lineStrong, other.lineStrong),
-      cornerInk: l(cornerInk, other.cornerInk),
     );
   }
 }

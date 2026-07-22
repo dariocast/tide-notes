@@ -6,10 +6,31 @@ import 'design_tokens.dart';
 enum GSizeClass { compact, medium, expanded }
 
 GSizeClass sizeClassOf(BuildContext context) {
+  final override = GSizeClassScope.maybeOf(context);
+  if (override != null) return override;
+
   final width = MediaQuery.sizeOf(context).width;
   if (width >= GLayout.bpExpanded) return GSizeClass.expanded;
   if (width >= GLayout.bpMedium) return GSizeClass.medium;
   return GSizeClass.compact;
+}
+
+/// Overrides responsive spacing for a focused layout subtree.
+class GSizeClassScope extends InheritedWidget {
+  const GSizeClassScope({
+    super.key,
+    required this.sizeClass,
+    required super.child,
+  });
+
+  final GSizeClass sizeClass;
+
+  static GSizeClass? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<GSizeClassScope>()?.sizeClass;
+
+  @override
+  bool updateShouldNotify(GSizeClassScope oldWidget) =>
+      sizeClass != oldWidget.sizeClass;
 }
 
 /// Resolves the Gravity palette, falling back to the brightness default so
@@ -54,105 +75,6 @@ class PaperBackground extends StatelessWidget {
       ),
     );
   }
-}
-
-/// The Tide wordmark glyph — two nested crests drawn as one continuous stroke,
-/// evoking a receding tide. Purely decorative; excluded from semantics.
-class TideGlyph extends StatelessWidget {
-  const TideGlyph({super.key, this.size = 20, this.color});
-
-  final double size;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    final tint = color ?? gravityOf(context).accent;
-    return ExcludeSemantics(
-      child: CustomPaint(
-        size: Size(size * 1.35, size),
-        painter: _TideGlyphPainter(tint),
-      ),
-    );
-  }
-}
-
-class _TideGlyphPainter extends CustomPainter {
-  const _TideGlyphPainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = GDecor.glyphStroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final w = size.width, h = size.height;
-    void crest(double y, Color c) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(0, y)
-          ..cubicTo(w * 0.28, y - h * 0.42, w * 0.42, y + h * 0.30, w * 0.5, y)
-          ..cubicTo(w * 0.62, y - h * 0.30, w * 0.78, y + h * 0.42, w, y),
-        paint..color = c,
-      );
-    }
-
-    crest(h * 0.34, color.withValues(alpha: 0.45));
-    crest(h * 0.70, color);
-  }
-
-  @override
-  bool shouldRepaint(_TideGlyphPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-/// Editorial corner-marks framing a region, drawn from [GDecor] so the
-/// masthead reads as a deliberately composed page rather than a raw column.
-class MastheadFrame extends StatelessWidget {
-  const MastheadFrame({super.key, required this.child, this.inset});
-
-  final Widget child;
-  final double? inset;
-
-  @override
-  Widget build(BuildContext context) => CustomPaint(
-    foregroundPainter: _CornerMarkPainter(
-      color: gravityOf(context).cornerInk,
-      inset: inset ?? GDecor.frameInset,
-    ),
-    child: child,
-  );
-}
-
-class _CornerMarkPainter extends CustomPainter {
-  const _CornerMarkPainter({required this.color, required this.inset});
-
-  final Color color;
-  final double inset;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = GDecor.cornerMarkThickness;
-    const len = GDecor.cornerMarkLength;
-    final l = inset, t = inset, r = size.width - inset, b = size.height - inset;
-    void corner(double x, double y, double dx, double dy) => canvas
-      ..drawLine(Offset(x, y), Offset(x + dx, y), paint)
-      ..drawLine(Offset(x, y), Offset(x, y + dy), paint);
-    corner(l, t, len, len); // top-left
-    corner(r, t, -len, len); // top-right
-    corner(l, b, len, -len); // bottom-left
-    corner(r, b, -len, -len); // bottom-right
-  }
-
-  @override
-  bool shouldRepaint(_CornerMarkPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.inset != inset;
 }
 
 /// A single tokenized hairline rule.

@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
-import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
@@ -19,6 +19,9 @@ import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
+import 'package:tide/presentation/widgets/tide_empty_state.dart';
+import 'package:tide/presentation/widgets/tide_header.dart';
+import 'package:tide/presentation/widgets/tide_shell.dart';
 
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
@@ -126,8 +129,8 @@ void main() {
     await pumpPage(tester);
 
     expect(find.textContaining('Append'), findsOneWidget);
-    expect(find.textContaining('Review'), findsOneWidget);
-    expect(find.textContaining('Rescue'), findsOneWidget);
+    expect(find.textContaining('review'), findsOneWidget);
+    expect(find.textContaining('rescue'), findsOneWidget);
   });
 
   testWidgets('lean shell shows Tide count and localized date', (tester) async {
@@ -138,13 +141,127 @@ void main() {
     );
     await tester.pump();
 
-    final shell = tester.widget<ConstrainedBox>(
-      find.byKey(const ValueKey('tide-shell')),
-    );
-    expect(shell.constraints.maxWidth, GLayout.contentMax);
+    expect(find.byType(TideShell), findsOneWidget);
+    expect(find.byKey(const ValueKey('vertical-layout')), findsOneWidget);
     expect(find.text('Tide'), findsOneWidget);
     expect(find.textContaining('2 notes captured'), findsOneWidget);
     expect(find.textContaining('Jul 19'), findsOneWidget);
+  });
+
+  testWidgets('wide macOS puts controls beside note stream', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      await pumpPage(tester, notes: [makeNote('one')]);
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('desktop-split-layout')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('desktop-sidebar')), findsOneWidget);
+      expect(find.byType(NoteCard), findsOneWidget);
+    } finally {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('wide macOS supports large text without accessibility issues', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      await pumpPage(
+        tester,
+        notes: [makeNote('top'), makeNote('middle'), makeNote('bottom')],
+        mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+        theme: GravityAppTheme.light,
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('desktop-split-layout')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    } finally {
+      semantics.dispose();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('note stream keeps its scroll position across a breakpoint', (
+    tester,
+  ) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      final notes = List.generate(100, (index) => makeNote('$index'));
+      await pumpPage(tester, notes: notes);
+      await tester.pump();
+
+      final noteList = find.byKey(const ValueKey('note-list'));
+      await tester.drag(noteList, const Offset(0, -600));
+      await tester.pumpAndSettle();
+      final beforeResize = tester
+          .state<ScrollableState>(
+            find.descendant(of: noteList, matching: find.byType(Scrollable)),
+          )
+          .position
+          .pixels;
+      expect(beforeResize, greaterThan(0));
+
+      tester.view.physicalSize = const Size(1200, 800);
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('desktop-split-layout')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .state<ScrollableState>(
+              find.descendant(of: noteList, matching: find.byType(Scrollable)),
+            )
+            .position
+            .pixels,
+        closeTo(beforeResize, 0.01),
+      );
+    } finally {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('composer uses the tokenized capture field', (tester) async {
@@ -167,6 +284,36 @@ void main() {
       find.textContaining('Capture anything'),
     );
     expect(guidance.textAlign, TextAlign.left);
+  });
+
+  testWidgets('header and empty state use text without decorations', (
+    tester,
+  ) async {
+    await pumpPage(tester, theme: GravityAppTheme.light);
+
+    for (final type in [TideHeader, TideEmptyState]) {
+      expect(
+        find.descendant(
+          of: find.byType(type),
+          matching: find.byType(CustomPaint),
+        ),
+        findsNothing,
+      );
+    }
+    final shell = find.byType(TideShell);
+    expect(shell, findsOneWidget);
+    expect(
+      find.descendant(
+        of: shell,
+        matching: find.ancestor(
+          of: find.byType(TideHeader),
+          matching: find.byType(CustomPaint),
+        ),
+      ),
+      findsNothing,
+    );
+    expect(find.text('⌘'), findsNothing);
+    expect(find.text('↵'), findsNothing);
   });
 
   testWidgets('tapping note opens inline editor and focus loss flushes edit', (

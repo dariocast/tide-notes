@@ -34,12 +34,10 @@ class TideHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const TideGlyph(size: 18),
-                    const SizedBox(width: GSpace.s3),
-                    Text('Tide', style: Theme.of(context).textTheme.titleLarge),
-                  ],
+                Text(
+                  'Tide',
+                  key: const ValueKey('tide-title'),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: GSpace.s2),
                 Text(
