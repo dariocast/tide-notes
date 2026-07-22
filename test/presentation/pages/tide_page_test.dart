@@ -1,11 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
-import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
@@ -21,6 +21,7 @@ import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/tide_empty_state.dart';
 import 'package:tide/presentation/widgets/tide_header.dart';
+import 'package:tide/presentation/widgets/tide_shell.dart';
 
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
@@ -140,13 +141,38 @@ void main() {
     );
     await tester.pump();
 
-    final shell = tester.widget<ConstrainedBox>(
-      find.byKey(const ValueKey('tide-shell')),
-    );
-    expect(shell.constraints.maxWidth, GLayout.contentMax);
+    expect(find.byType(TideShell), findsOneWidget);
+    expect(find.byKey(const ValueKey('vertical-layout')), findsOneWidget);
     expect(find.text('Tide'), findsOneWidget);
     expect(find.textContaining('2 notes captured'), findsOneWidget);
     expect(find.textContaining('Jul 19'), findsOneWidget);
+  });
+
+  testWidgets('wide macOS puts controls beside note stream', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    });
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      await pumpPage(tester, notes: [makeNote('one')]);
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('desktop-split-layout')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('desktop-sidebar')), findsOneWidget);
+      expect(find.byType(NoteCard), findsOneWidget);
+    } finally {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('composer uses the tokenized capture field', (tester) async {

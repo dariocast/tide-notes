@@ -6,10 +6,11 @@ import '../../design/design_tokens.dart';
 import '../blocs/tide_bloc.dart';
 import '../blocs/tide_event.dart';
 import '../blocs/tide_state.dart';
-import '../widgets/note_composer.dart';
 import '../widgets/note_card.dart';
+import '../widgets/note_composer.dart';
 import '../widgets/note_stream.dart';
 import '../widgets/tide_header.dart';
+import '../widgets/tide_shell.dart';
 
 DateTime defaultTideNow() => DateTime.now();
 
@@ -56,64 +57,43 @@ class TidePage extends StatelessWidget {
       return Scaffold(
         body: PaperBackground(
           child: SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                key: const ValueKey('tide-shell'),
-                constraints: const BoxConstraints(maxWidth: GLayout.contentMax),
-                child: FocusTraversalGroup(
-                  child: Column(
-                    children: [
-                      TideHeader(noteCount: state.notes.length, now: now()),
-                      NoteComposer(
-                        appendCompleted: state.appendCompleted,
-                        onSubmit: (content) => context.read<TideBloc>().add(
-                          NoteAppendRequested(content),
+            child: TideShell(
+              header: TideHeader(noteCount: state.notes.length, now: now()),
+              composer: NoteComposer(
+                appendCompleted: state.appendCompleted,
+                onSubmit: (content) =>
+                    context.read<TideBloc>().add(NoteAppendRequested(content)),
+              ),
+              undoAction: state.rescueReceipt == null
+                  ? const SizedBox(height: GSpace.s2)
+                  : Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          GSpace.s4,
+                          0,
+                          GSpace.s4,
+                          GSpace.s2,
+                        ),
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.read<TideBloc>().add(
+                            const RescueUndoRequested(),
+                          ),
+                          icon: const Icon(Icons.undo_rounded, size: 18),
+                          label: const Text('Undo rescue'),
                         ),
                       ),
-                      if (state.rescueReceipt != null)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              GSpace.s4,
-                              0,
-                              GSpace.s4,
-                              GSpace.s2,
-                            ),
-                            child: OutlinedButton.icon(
-                              onPressed: () => context.read<TideBloc>().add(
-                                const RescueUndoRequested(),
-                              ),
-                              icon: const Icon(Icons.undo_rounded, size: 18),
-                              label: const Text('Undo rescue'),
-                            ),
-                          ),
-                        )
-                      else
-                        const SizedBox(height: GSpace.s2),
-                      Hairline(
-                        indent: sizeClassOf(context) == GSizeClass.compact
-                            ? GSpace.s4
-                            : GSpace.s6,
-                      ),
-                      Expanded(
-                        child: NoteStream(
-                          notes: state.notes,
-                          busyNoteIds: state.busyNoteIds,
-                          haptic: haptic,
-                          now: now,
-                          onChanged: (edit) => context.read<TideBloc>().add(
-                            NoteEditRequested(edit.id, edit.content),
-                          ),
-                          onRescue: (id) => context.read<TideBloc>().add(
-                            NoteRescueRequested(id),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+              stream: NoteStream(
+                notes: state.notes,
+                busyNoteIds: state.busyNoteIds,
+                haptic: haptic,
+                now: now,
+                onChanged: (edit) => context.read<TideBloc>().add(
+                  NoteEditRequested(edit.id, edit.content),
                 ),
+                onRescue: (id) =>
+                    context.read<TideBloc>().add(NoteRescueRequested(id)),
               ),
             ),
           ),
