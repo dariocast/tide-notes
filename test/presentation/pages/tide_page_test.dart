@@ -19,6 +19,7 @@ import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
 import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
+import 'package:tide/design/tide_depth_fade.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/tide_empty_state.dart';
@@ -474,6 +475,80 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     semantics.dispose();
   });
+
+  testWidgets('note stream sinks toward the viewport floor by default', (
+    tester,
+  ) async {
+    await pumpPage(tester, notes: [makeNote('one'), makeNote('two')]);
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
+  });
+
+  testWidgets('starting inline edit bypasses the depth fade', (tester) async {
+    await pumpPage(tester, notes: [makeNote('one'), makeNote('two')]);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
+
+    await tester.tap(find.byType(NoteCard).first);
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('tide-depth-mask')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('composer-input')));
+    await tester.pump(const Duration(milliseconds: 450));
+
+    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
+  });
+
+  testWidgets(
+    'a note scrolled toward the top of the viewport recovers full presence',
+    (tester) async {
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(400, 700);
+
+      final notes = List.generate(40, (index) => makeNote('$index'));
+      await pumpPage(tester, notes: notes);
+      await tester.pump();
+
+      final noteList = find.byKey(const ValueKey('note-list'));
+      final viewportHeight = tester.getSize(noteList).height;
+      final listTop = tester.getTopLeft(noteList).dy;
+      final noteHeight = tester
+          .getSize(find.byKey(const ValueKey('0')).first)
+          .height;
+      final target = find.byKey(const ValueKey('20')).first;
+
+      double fractionOf(Finder finder) =>
+          (tester.getTopLeft(finder).dy - listTop) / viewportHeight;
+
+      // Bring note 20 into the lower band of the viewport first.
+      await tester.drag(
+        noteList,
+        Offset(0, -(20 * noteHeight - viewportHeight * 0.8)),
+      );
+      await tester.pump();
+      final lowerFraction = fractionOf(target);
+
+      // Scroll further so the same note rises toward the top of the
+      // viewport.
+      await tester.drag(noteList, Offset(0, -(noteHeight * 3)));
+      await tester.pump();
+      final risenFraction = fractionOf(target);
+
+      expect(risenFraction, lessThan(lowerFraction));
+      const floor = 0.8;
+      expect(
+        TideDepthModel.opacityAt(risenFraction, floor: floor),
+        greaterThan(TideDepthModel.opacityAt(lowerFraction, floor: floor)),
+      );
+      expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
+    },
+  );
 }
 
 final class PageRepository implements NoteRepository {

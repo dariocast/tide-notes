@@ -7,6 +7,8 @@ import 'package:tide/domain/entities/note.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/prefix_text.dart';
 
+import '../../support/contrast.dart';
+
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
   final note = Note(
@@ -41,7 +43,7 @@ void main() {
     );
     final span = richText.text as TextSpan;
     final color = span.style!.color!;
-    expect(_contrast(color, GFoam.surface), greaterThanOrEqualTo(4.5));
+    expect(contrast(color, GFoam.surface), greaterThanOrEqualTo(4.5));
   });
 
   testWidgets('busy card cannot dispatch rescue', (tester) async {
@@ -152,7 +154,7 @@ void main() {
         final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
         expect(metadata.style?.color, textMuted);
         expect(
-          _contrast(
+          contrast(
             metadata.style!.color!,
             Color.alphaBlend(hoverColor, bgBottom),
           ),
@@ -187,16 +189,4 @@ void main() {
       before.width,
     );
   });
-}
-
-double _contrast(Color foreground, Color background) {
-  final foregroundLuminance = foreground.computeLuminance();
-  final backgroundLuminance = background.computeLuminance();
-  final lighter = foregroundLuminance > backgroundLuminance
-      ? foregroundLuminance
-      : backgroundLuminance;
-  final darker = foregroundLuminance > backgroundLuminance
-      ? backgroundLuminance
-      : foregroundLuminance;
-  return (lighter + 0.05) / (darker + 0.05);
 }

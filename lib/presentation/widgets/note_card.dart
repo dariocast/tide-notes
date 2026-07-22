@@ -27,6 +27,7 @@ class NoteCard extends StatefulWidget {
     this.rescueEnabled = true,
     this.haptic = defaultTideHaptic,
     this.now = defaultNoteNow,
+    this.onEditingChanged,
   });
 
   final Note note;
@@ -37,6 +38,7 @@ class NoteCard extends StatefulWidget {
   final VoidCallback onRescue;
   final VoidCallback haptic;
   final DateTime Function() now;
+  final ValueChanged<bool>? onEditingChanged;
 
   @override
   State<NoteCard> createState() => _NoteCardState();
@@ -66,6 +68,7 @@ class _NoteCardState extends State<NoteCard> {
     if (widget.busy) return;
     _controller = TextEditingController(text: widget.note.content);
     setState(() => _editing = true);
+    widget.onEditingChanged?.call(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusNode.requestFocus();
     });
@@ -76,6 +79,7 @@ class _NoteCardState extends State<NoteCard> {
     final controller = _controller;
     if (controller != null) widget.onChanged(controller.text);
     setState(() => _editing = false);
+    widget.onEditingChanged?.call(false);
   }
 
   @override
