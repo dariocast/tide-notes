@@ -26,19 +26,26 @@ void main() {
     for (final theme in [GravityAppTheme.light, GravityAppTheme.dark]) {
       final textTheme = theme.textTheme;
       final roles = [
+        textTheme.displayLarge,
+        textTheme.displayMedium,
         textTheme.displaySmall,
+        textTheme.headlineLarge,
         textTheme.headlineMedium,
         textTheme.headlineSmall,
         textTheme.titleLarge,
+        textTheme.titleMedium,
+        textTheme.titleSmall,
         textTheme.bodyLarge,
         textTheme.bodyMedium,
         textTheme.bodySmall,
         textTheme.labelLarge,
+        textTheme.labelMedium,
         textTheme.labelSmall,
       ];
 
       for (final role in roles) {
-        expect(role?.fontFamily, isNull);
+        expect(role, isNotNull);
+        expect(role!.fontFamily, isNull);
       }
     }
   });

@@ -2,6 +2,32 @@ import 'package:flutter/material.dart';
 
 import 'design_tokens.dart';
 
+TextStyle _withoutFontFamily(TextStyle style) => TextStyle(
+  inherit: style.inherit,
+  color: style.color,
+  backgroundColor: style.backgroundColor,
+  fontSize: style.fontSize,
+  fontWeight: style.fontWeight,
+  fontStyle: style.fontStyle,
+  letterSpacing: style.letterSpacing,
+  wordSpacing: style.wordSpacing,
+  textBaseline: style.textBaseline,
+  height: style.height,
+  leadingDistribution: style.leadingDistribution,
+  locale: style.locale,
+  foreground: style.foreground,
+  background: style.background,
+  shadows: style.shadows,
+  fontFeatures: style.fontFeatures,
+  fontVariations: style.fontVariations,
+  decoration: style.decoration,
+  decorationColor: style.decorationColor,
+  decorationStyle: style.decorationStyle,
+  decorationThickness: style.decorationThickness,
+  debugLabel: style.debugLabel,
+  overflow: style.overflow,
+);
+
 abstract final class GravityAppTheme {
   static ThemeData get light => _build(Brightness.light, GravityTheme.light);
   static ThemeData get dark => _build(Brightness.dark, GravityTheme.dark);
@@ -163,6 +189,25 @@ abstract final class GravityAppTheme {
         selectionColor: g.accent.withValues(alpha: .24),
       ),
     );
-    return theme.copyWith(textTheme: text);
+    final defaults = theme.textTheme;
+    return theme.copyWith(
+      textTheme: TextTheme(
+        displayLarge: _withoutFontFamily(defaults.displayLarge!),
+        displayMedium: _withoutFontFamily(defaults.displayMedium!),
+        displaySmall: text.displaySmall,
+        headlineLarge: _withoutFontFamily(defaults.headlineLarge!),
+        headlineMedium: text.headlineMedium,
+        headlineSmall: text.headlineSmall,
+        titleLarge: text.titleLarge,
+        titleMedium: _withoutFontFamily(defaults.titleMedium!),
+        titleSmall: _withoutFontFamily(defaults.titleSmall!),
+        bodyLarge: text.bodyLarge,
+        bodyMedium: text.bodyMedium,
+        bodySmall: text.bodySmall,
+        labelLarge: text.labelLarge,
+        labelMedium: _withoutFontFamily(defaults.labelMedium!),
+        labelSmall: text.labelSmall,
+      ),
+    );
   }
 }

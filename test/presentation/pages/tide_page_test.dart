@@ -185,6 +185,16 @@ void main() {
         findsNothing,
       );
     }
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('tide-shell')),
+        matching: find.ancestor(
+          of: find.byType(TideHeader),
+          matching: find.byType(CustomPaint),
+        ),
+      ),
+      findsNothing,
+    );
     expect(find.text('⌘'), findsNothing);
     expect(find.text('↵'), findsNothing);
   });
