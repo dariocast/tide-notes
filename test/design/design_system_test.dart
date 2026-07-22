@@ -21,4 +21,25 @@ void main() {
       const Size(0, GLayout.minTouchTarget),
     );
   });
+
+  test('application text roles use the platform font', () {
+    for (final theme in [GravityAppTheme.light, GravityAppTheme.dark]) {
+      final textTheme = theme.textTheme;
+      final roles = [
+        textTheme.displaySmall,
+        textTheme.headlineMedium,
+        textTheme.headlineSmall,
+        textTheme.titleLarge,
+        textTheme.bodyLarge,
+        textTheme.bodyMedium,
+        textTheme.bodySmall,
+        textTheme.labelLarge,
+        textTheme.labelSmall,
+      ];
+
+      for (final role in roles) {
+        expect(role?.fontFamily, isNull);
+      }
+    }
+  });
 }

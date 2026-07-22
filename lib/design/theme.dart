@@ -20,7 +20,6 @@ abstract final class GravityAppTheme {
     );
     final text = TextTheme(
       displaySmall: TextStyle(
-        fontFamily: 'InstrumentSerif',
         fontSize: 44,
         height: 1.06,
         fontWeight: FontWeight.w400,
@@ -28,7 +27,6 @@ abstract final class GravityAppTheme {
         color: g.ink,
       ),
       headlineMedium: TextStyle(
-        fontFamily: 'InstrumentSerif',
         fontSize: 32,
         height: 1.3,
         fontWeight: FontWeight.w400,
@@ -36,7 +34,6 @@ abstract final class GravityAppTheme {
         color: g.ink,
       ),
       headlineSmall: TextStyle(
-        fontFamily: 'InstrumentSerif',
         fontSize: 24,
         height: 1.3,
         fontWeight: FontWeight.w400,
@@ -44,7 +41,6 @@ abstract final class GravityAppTheme {
         color: g.accentMuted,
       ),
       titleLarge: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 20,
         height: 1.5,
         fontWeight: FontWeight.w700,
@@ -52,28 +48,24 @@ abstract final class GravityAppTheme {
         color: g.ink,
       ),
       bodyLarge: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 18,
         height: 1.6,
         fontWeight: FontWeight.w400,
         color: g.textSecondary,
       ),
       bodyMedium: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 16,
         height: 1.5,
         fontWeight: FontWeight.w400,
         color: g.ink,
       ),
       labelLarge: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 15,
         height: 1,
         fontWeight: FontWeight.w600,
         letterSpacing: -.16,
       ),
       labelSmall: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 12,
         height: 1.2,
         fontWeight: FontWeight.w700,
@@ -81,7 +73,6 @@ abstract final class GravityAppTheme {
         color: g.textMuted,
       ),
       bodySmall: TextStyle(
-        fontFamily: 'Manrope',
         fontSize: 13,
         height: 1.4,
         fontWeight: FontWeight.w500,
@@ -89,7 +80,7 @@ abstract final class GravityAppTheme {
       ),
     );
     final shape = const RoundedRectangleBorder();
-    return ThemeData(
+    final theme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
@@ -97,7 +88,6 @@ abstract final class GravityAppTheme {
       extensions: [g],
       splashFactory: NoSplash.splashFactory,
       visualDensity: VisualDensity.standard,
-      textTheme: text,
       cardTheme: CardThemeData(
         shape: shape,
         surfaceTintColor: Colors.transparent,
@@ -173,5 +163,6 @@ abstract final class GravityAppTheme {
         selectionColor: g.accent.withValues(alpha: .24),
       ),
     );
+    return theme.copyWith(textTheme: text);
   }
 }

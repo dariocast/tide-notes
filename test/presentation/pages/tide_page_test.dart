@@ -19,6 +19,8 @@ import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
+import 'package:tide/presentation/widgets/tide_empty_state.dart';
+import 'package:tide/presentation/widgets/tide_header.dart';
 
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
@@ -126,8 +128,8 @@ void main() {
     await pumpPage(tester);
 
     expect(find.textContaining('Append'), findsOneWidget);
-    expect(find.textContaining('Review'), findsOneWidget);
-    expect(find.textContaining('Rescue'), findsOneWidget);
+    expect(find.textContaining('review'), findsOneWidget);
+    expect(find.textContaining('rescue'), findsOneWidget);
   });
 
   testWidgets('lean shell shows Tide count and localized date', (tester) async {
@@ -167,6 +169,24 @@ void main() {
       find.textContaining('Capture anything'),
     );
     expect(guidance.textAlign, TextAlign.left);
+  });
+
+  testWidgets('header and empty state use text without decorations', (
+    tester,
+  ) async {
+    await pumpPage(tester, theme: GravityAppTheme.light);
+
+    for (final type in [TideHeader, TideEmptyState]) {
+      expect(
+        find.descendant(
+          of: find.byType(type),
+          matching: find.byType(CustomPaint),
+        ),
+        findsNothing,
+      );
+    }
+    expect(find.text('⌘'), findsNothing);
+    expect(find.text('↵'), findsNothing);
   });
 
   testWidgets('tapping note opens inline editor and focus loss flushes edit', (
