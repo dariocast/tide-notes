@@ -89,7 +89,7 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
     final isTop = widget.index == 0;
     final rescue = rescueMetadata(widget.note.rescueCount);

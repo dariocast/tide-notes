@@ -50,7 +50,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: Scaffold(
             body: TideShell(
               platform: platform,
@@ -138,7 +138,7 @@ void main() {
               find.descendant(of: divider, matching: find.byType(ColoredBox)),
             )
             .color,
-        GravityTheme.light.lineSubtle,
+        TideColors.foam.lineSubtle,
       );
     });
 
@@ -200,7 +200,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: Scaffold(
             body: TideShell(
               platform: TargetPlatform.macOS,
@@ -240,7 +240,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: Scaffold(
             body: StatefulBuilder(
               builder: (context, setState) {
@@ -268,7 +268,7 @@ void main() {
     testWidgets('requires a bounded full-viewport height', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: SingleChildScrollView(
             child: TideShell(
               platform: TargetPlatform.iOS,

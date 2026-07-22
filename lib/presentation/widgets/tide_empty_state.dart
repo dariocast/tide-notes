@@ -8,7 +8,7 @@ class TideEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
     return SingleChildScrollView(
       child: Padding(

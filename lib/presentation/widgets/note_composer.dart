@@ -65,7 +65,7 @@ class _NoteComposerState extends State<NoteComposer> {
   @override
   Widget build(BuildContext context) {
     final compact = sizeClassOf(context) == GSizeClass.compact;
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
     return Padding(
       key: const ValueKey('composer'),
       padding: EdgeInsets.fromLTRB(

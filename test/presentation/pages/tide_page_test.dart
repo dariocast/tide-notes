@@ -193,7 +193,7 @@ void main() {
         tester,
         notes: [makeNote('top'), makeNote('middle'), makeNote('bottom')],
         mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
       );
       await tester.pump();
 
@@ -289,7 +289,7 @@ void main() {
   testWidgets('header and empty state use text without decorations', (
     tester,
   ) async {
-    await pumpPage(tester, theme: GravityAppTheme.light);
+    await pumpPage(tester, theme: TideAppTheme.foam);
 
     for (final type in [TideHeader, TideEmptyState]) {
       expect(
@@ -365,7 +365,7 @@ void main() {
     await pumpPage(
       tester,
       mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
-      theme: GravityAppTheme.light,
+      theme: TideAppTheme.foam,
     );
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(textContrastGuideline));
@@ -378,7 +378,7 @@ void main() {
         textScaler: TextScaler.linear(1.3),
         platformBrightness: Brightness.dark,
       ),
-      theme: GravityAppTheme.dark,
+      theme: TideAppTheme.deepTide,
     );
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(textContrastGuideline));

@@ -16,7 +16,7 @@ class TideHeader extends StatelessWidget {
         ? '1 note captured'
         : '$noteCount notes captured';
     final date = MaterialLocalizations.of(context).formatMediumDate(now);
-    final g = Theme.of(context).extension<GravityTheme>()!;
+    final g = Theme.of(context).extension<TideColors>()!;
     final compact = sizeClassOf(context) == GSizeClass.compact;
     final appearance = AppearanceScope.maybeOf(context);
 

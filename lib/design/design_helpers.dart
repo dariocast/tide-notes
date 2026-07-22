@@ -33,13 +33,13 @@ class GSizeClassScope extends InheritedWidget {
       sizeClass != oldWidget.sizeClass;
 }
 
-/// Resolves the Gravity palette, falling back to the brightness default so
+/// Resolves the Tide palette, falling back to the brightness default so
 /// widgets never crash when the extension is momentarily absent.
-GravityTheme gravityOf(BuildContext context) =>
-    Theme.of(context).extension<GravityTheme>() ??
+TideColors tideColorsOf(BuildContext context) =>
+    Theme.of(context).extension<TideColors>() ??
     (Theme.of(context).brightness == Brightness.dark
-        ? GravityTheme.dark
-        : GravityTheme.light);
+        ? TideColors.deepTide
+        : TideColors.foam);
 
 class PaperBackground extends StatelessWidget {
   const PaperBackground({super.key, required this.child});
@@ -48,7 +48,7 @@ class PaperBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -89,13 +89,13 @@ class Hairline extends StatelessWidget {
     child: SizedBox(
       height: GDecor.hairline,
       width: double.infinity,
-      child: ColoredBox(color: gravityOf(context).lineSubtle),
+      child: ColoredBox(color: tideColorsOf(context).lineSubtle),
     ),
   );
 }
 
-class GravityMotion {
-  const GravityMotion(this.context);
+class TideMotion {
+  const TideMotion(this.context);
 
   final BuildContext context;
 
@@ -106,8 +106,8 @@ class GravityMotion {
       : value;
 }
 
-extension GravityContext on BuildContext {
-  GravityMotion get motion => GravityMotion(this);
+extension TideMotionContext on BuildContext {
+  TideMotion get motion => TideMotion(this);
 }
 
 class FocusRing extends StatelessWidget {
@@ -117,7 +117,7 @@ class FocusRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
     return Focus(
       child: Builder(
         builder: (context) => AnimatedContainer(

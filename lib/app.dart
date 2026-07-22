@@ -25,8 +25,8 @@ class _TideAppState extends State<TideApp> {
       child: MaterialApp(
         title: 'Tide',
         debugShowCheckedModeBanner: false,
-        theme: GravityAppTheme.light,
-        darkTheme: GravityAppTheme.dark,
+        theme: TideAppTheme.foam,
+        darkTheme: TideAppTheme.deepTide,
         themeMode: _appearance.themeMode,
         home: widget.home,
       ),

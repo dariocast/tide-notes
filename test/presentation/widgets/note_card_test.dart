@@ -21,7 +21,7 @@ void main() {
   testWidgets('sinking text keeps readable contrast', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: note,
@@ -41,7 +41,7 @@ void main() {
     );
     final span = richText.text as TextSpan;
     final color = span.style!.color!;
-    expect(_contrast(color, GLight.surface), greaterThanOrEqualTo(4.5));
+    expect(_contrast(color, GFoam.surface), greaterThanOrEqualTo(4.5));
   });
 
   testWidgets('busy card cannot dispatch rescue', (tester) async {
@@ -49,7 +49,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: note,
@@ -74,7 +74,7 @@ void main() {
     final rescued = note.copyWith(rescueCount: 2);
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: rescued,
@@ -99,21 +99,21 @@ void main() {
     expect(find.textContaining('↑ 2'), findsOneWidget);
   });
 
-  for (final (:name, :theme, :ink, :textGhost, :bgBottom, :hoverMinimum) in [
+  for (final (:name, :theme, :ink, :textMuted, :bgBottom, :hoverMinimum) in [
     (
-      name: 'light',
-      theme: GravityAppTheme.light,
-      ink: GLight.ink,
-      textGhost: GLight.textGhost,
-      bgBottom: GLight.bgBottom,
+      name: 'foam',
+      theme: TideAppTheme.foam,
+      ink: GFoam.ink,
+      textMuted: GFoam.textMuted,
+      bgBottom: GFoam.bgBottom,
       hoverMinimum: 4.55,
     ),
     (
-      name: 'dark',
-      theme: GravityAppTheme.dark,
-      ink: GDark.ink,
-      textGhost: GDark.textGhost,
-      bgBottom: GDark.bgBottom,
+      name: 'deepTide',
+      theme: TideAppTheme.deepTide,
+      ink: GDeepTide.ink,
+      textMuted: GDeepTide.textMuted,
+      bgBottom: GDeepTide.bgBottom,
       hoverMinimum: 4.6,
     ),
   ]) {
@@ -148,7 +148,7 @@ void main() {
       final hoverColor = (row.decoration as BoxDecoration).color!;
       expect(hoverColor, ink.withValues(alpha: GDecor.hoverAlpha));
       final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
-      expect(metadata.style?.color, textGhost);
+      expect(metadata.style?.color, textMuted);
       expect(
         _contrast(
           metadata.style!.color!,
@@ -162,7 +162,7 @@ void main() {
   testWidgets('inline editor keeps the flat row surface', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: note,

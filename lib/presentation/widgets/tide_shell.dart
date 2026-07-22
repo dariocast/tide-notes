@@ -104,7 +104,7 @@ class _TideShellState extends State<TideShell> {
             SizedBox(
               key: const ValueKey('desktop-divider'),
               width: GDecor.hairline,
-              child: ColoredBox(color: gravityOf(context).lineSubtle),
+              child: ColoredBox(color: tideColorsOf(context).lineSubtle),
             ),
             Expanded(child: _region(_streamKey, widget.stream)),
           ],

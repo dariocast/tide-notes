@@ -120,7 +120,7 @@ void main() {
     final stamp = timestamp;
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
           child: Scaffold(

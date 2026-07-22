@@ -42,8 +42,8 @@ class PrefixText extends StatelessWidget {
   }
 
   Color _prefixColor(BuildContext context, String prefix) {
-    final g = Theme.of(context).extension<GravityTheme>()!;
-    final palette = [g.accent, g.rescue, g.archive];
+    final g = Theme.of(context).extension<TideColors>()!;
+    final palette = [g.accent, g.rescue, g.prefixWarm];
     return palette[prefixPaletteIndex(prefix, palette.length)];
   }
 }
