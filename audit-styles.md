@@ -34,9 +34,12 @@ business timing rather than visual motion. All palette, typography, layout,
 shape, and fade values now originate under `lib/design`.
 
 Contrast is enforced rather than judged: pure tests calculate worst-case
-composited contrast for resting, hovered, and deepest-viewport-fade states
-across Foam, Deep Tide, and Abyss, and each theme's fade floor is derived from
-the 4.5:1 contract rather than chosen arbitrarily.
+composited contrast for the hovered state (Foam, Deep Tide) and the
+deepest-viewport-fade state (Foam, Deep Tide, Abyss); resting-state contrast
+is enforced via widget-level accessibility-guideline checks (Foam, Deep Tide).
+Each theme's fade floor is derived from the 4.5:1 contract rather than chosen
+arbitrarily. Abyss hover and resting contrast are not yet independently
+pure-tested — a follow-up gap noted for a future pass.
 
 ## Remaining scope
 
