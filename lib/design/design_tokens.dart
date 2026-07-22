@@ -67,6 +67,8 @@ abstract final class GLayout {
   static const contentMax = 720.0,
       contentNarrow = 640.0,
       contentWide = 800.0,
+      desktopMax = 1040.0,
+      desktopSidebar = 336.0,
       headerHeight = 72.0,
       minTouchTarget = 48.0,
       bpMedium = 600.0,
