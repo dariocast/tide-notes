@@ -35,7 +35,7 @@ abstract final class GDark {
   static const ink = Color(0xFFF0EAE2);
   static const textSecondary = Color(0xFFD5CCC1);
   static const textMuted = Color(0xFFA79C8F);
-  static const textGhost = Color(0xFF7E756B);
+  static const textGhost = Color(0xFF8C8379);
   static const dotNeutral = Color(0xFFC9BEB1);
   static const accent = Color(0xFFC08B58);
   static const accentMuted = Color(0xFF8A6A48);

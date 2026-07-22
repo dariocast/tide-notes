@@ -62,10 +62,10 @@ class _TideShellState extends State<TideShell> {
     },
   );
 
-  Widget _buildVertical() => Align(
-    alignment: Alignment.topCenter,
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: GLayout.contentMax),
+  Widget _buildVertical() => GSizeClassScope(
+    sizeClass: GSizeClass.compact,
+    child: SizedBox(
+      width: double.infinity,
       child: FocusTraversalGroup(
         child: Column(
           key: const ValueKey('vertical-layout'),

@@ -22,21 +22,35 @@ void main() {
     );
   });
 
-  test('light metadata stays readable on bare and hovered paper', () {
-    final hoveredPaper = Color.alphaBlend(
-      GLight.ink.withValues(alpha: GDecor.hoverAlpha),
-      GLight.bgBottom,
-    );
+  for (final (:name, :ink, :textGhost, :bgBottom, :hoverMinimum) in [
+    (
+      name: 'light',
+      ink: GLight.ink,
+      textGhost: GLight.textGhost,
+      bgBottom: GLight.bgBottom,
+      hoverMinimum: 4.55,
+    ),
+    (
+      name: 'dark',
+      ink: GDark.ink,
+      textGhost: GDark.textGhost,
+      bgBottom: GDark.bgBottom,
+      hoverMinimum: 4.6,
+    ),
+  ]) {
+    test('$name metadata stays readable on bare and hovered paper', () {
+      final hoveredPaper = Color.alphaBlend(
+        ink.withValues(alpha: GDecor.hoverAlpha),
+        bgBottom,
+      );
 
-    expect(
-      _contrast(GLight.textGhost, GLight.bgBottom),
-      greaterThanOrEqualTo(4.5),
-    );
-    expect(
-      _contrast(GLight.textGhost, hoveredPaper),
-      greaterThanOrEqualTo(4.55),
-    );
-  });
+      expect(_contrast(textGhost, bgBottom), greaterThanOrEqualTo(4.5));
+      expect(
+        _contrast(textGhost, hoveredPaper),
+        greaterThanOrEqualTo(hoverMinimum),
+      );
+    });
+  }
 
   test('application text roles use the platform font', () {
     for (final theme in [GravityAppTheme.light, GravityAppTheme.dark]) {

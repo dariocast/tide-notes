@@ -99,46 +99,65 @@ void main() {
     expect(find.textContaining('↑ 2'), findsOneWidget);
   });
 
-  testWidgets('hovered row keeps metadata readable on darkest paper', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: GravityAppTheme.light,
-        home: Scaffold(
-          backgroundColor: GLight.bgBottom,
-          body: NoteCard(
-            note: note,
-            index: 1,
-            onChanged: (_) {},
-            onRescue: () {},
+  for (final (:name, :theme, :ink, :textGhost, :bgBottom, :hoverMinimum) in [
+    (
+      name: 'light',
+      theme: GravityAppTheme.light,
+      ink: GLight.ink,
+      textGhost: GLight.textGhost,
+      bgBottom: GLight.bgBottom,
+      hoverMinimum: 4.55,
+    ),
+    (
+      name: 'dark',
+      theme: GravityAppTheme.dark,
+      ink: GDark.ink,
+      textGhost: GDark.textGhost,
+      bgBottom: GDark.bgBottom,
+      hoverMinimum: 4.6,
+    ),
+  ]) {
+    testWidgets('$name hovered row keeps metadata readable on darkest paper', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            backgroundColor: bgBottom,
+            body: NoteCard(
+              note: note,
+              index: 1,
+              onChanged: (_) {},
+              onRescue: () {},
+            ),
           ),
         ),
-      ),
-    );
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    addTearDown(mouse.removePointer);
-    await mouse.addPointer(location: Offset.zero);
-    await mouse.moveTo(
-      tester.getCenter(find.byKey(const ValueKey('note-row'))),
-    );
-    await tester.pump();
+      );
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(
+        tester.getCenter(find.byKey(const ValueKey('note-row'))),
+      );
+      await tester.pump();
 
-    final row = tester.widget<AnimatedContainer>(
-      find.byKey(const ValueKey('note-row')),
-    );
-    final hoverColor = (row.decoration as BoxDecoration).color!;
-    expect(hoverColor, GLight.ink.withValues(alpha: GDecor.hoverAlpha));
-    final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
-    expect(metadata.style?.color, GLight.textGhost);
-    expect(
-      _contrast(
-        metadata.style!.color!,
-        Color.alphaBlend(hoverColor, GLight.bgBottom),
-      ),
-      greaterThanOrEqualTo(4.55),
-    );
-  });
+      final row = tester.widget<AnimatedContainer>(
+        find.byKey(const ValueKey('note-row')),
+      );
+      final hoverColor = (row.decoration as BoxDecoration).color!;
+      expect(hoverColor, ink.withValues(alpha: GDecor.hoverAlpha));
+      final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
+      expect(metadata.style?.color, textGhost);
+      expect(
+        _contrast(
+          metadata.style!.color!,
+          Color.alphaBlend(hoverColor, bgBottom),
+        ),
+        greaterThanOrEqualTo(hoverMinimum),
+      );
+    });
+  }
 
   testWidgets('inline editor keeps the flat row surface', (tester) async {
     await tester.pumpWidget(

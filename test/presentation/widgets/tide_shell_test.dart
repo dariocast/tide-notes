@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tide/design/design_helpers.dart';
 import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/presentation/widgets/note_composer.dart';
@@ -53,7 +54,17 @@ void main() {
           home: Scaffold(
             body: TideShell(
               platform: platform,
-              header: const Text('header'),
+              header: Column(
+                children: [
+                  const Text('header'),
+                  Builder(
+                    builder: (context) => Text(
+                      sizeClassOf(context).name,
+                      key: const ValueKey('size-class-probe'),
+                    ),
+                  ),
+                ],
+              ),
               composer: const Text('composer'),
               undoAction: const Text('undo'),
               stream: const Text('stream'),
@@ -74,6 +85,18 @@ void main() {
       expect(
         tester.getSize(find.byKey(const ValueKey('desktop-sidebar'))).width,
         GLayout.desktopSidebar,
+      );
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('desktop-split-layout')))
+            .width,
+        GLayout.desktopMax,
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const ValueKey('size-class-probe')))
+            .data,
+        GSizeClass.expanded.name,
       );
       expect(
         find.ancestor(
@@ -119,53 +142,52 @@ void main() {
       );
     });
 
-    testWidgets('narrow macOS renders vertically', (tester) async {
-      await pumpShell(
-        tester,
-        platform: TargetPlatform.macOS,
-        width: GLayout.bpExpanded - 1,
-      );
+    testWidgets('vertical layouts fill the viewport and use compact sizing', (
+      tester,
+    ) async {
+      for (final (:platform, :width) in [
+        (platform: TargetPlatform.iOS, width: 1200.0),
+        (platform: TargetPlatform.android, width: 1200.0),
+        (platform: TargetPlatform.macOS, width: GLayout.bpExpanded - 1),
+      ]) {
+        await pumpShell(tester, platform: platform, width: width);
 
-      expect(find.byKey(const ValueKey('vertical-layout')), findsOneWidget);
-      expect(find.byKey(const ValueKey('desktop-split-layout')), findsNothing);
-      expect(
-        find.ancestor(
-          of: find.byKey(const ValueKey('vertical-layout')),
-          matching: find.byWidgetPredicate(
-            (widget) =>
-                widget is ConstrainedBox &&
-                widget.constraints.maxWidth == GLayout.contentMax,
-          ),
-        ),
-        findsOneWidget,
-      );
-
-      final vertical = find.byKey(const ValueKey('vertical-layout'));
-      for (final label in ['header', 'composer', 'undo', 'stream']) {
+        expect(find.byKey(const ValueKey('vertical-layout')), findsOneWidget);
         expect(
-          find.descendant(of: vertical, matching: find.text(label)),
-          findsOneWidget,
+          find.byKey(const ValueKey('desktop-split-layout')),
+          findsNothing,
+        );
+        expect(
+          tester.getSize(find.byKey(const ValueKey('vertical-layout'))).width,
+          width,
+        );
+        expect(
+          tester
+              .widget<Text>(find.byKey(const ValueKey('size-class-probe')))
+              .data,
+          GSizeClass.compact.name,
+        );
+
+        final vertical = find.byKey(const ValueKey('vertical-layout'));
+        for (final label in ['header', 'composer', 'undo', 'stream']) {
+          expect(
+            find.descendant(of: vertical, matching: find.text(label)),
+            findsOneWidget,
+          );
+        }
+        expect(
+          tester.getTopLeft(find.text('header')).dy,
+          lessThan(tester.getTopLeft(find.text('composer')).dy),
+        );
+        expect(
+          tester.getTopLeft(find.text('composer')).dy,
+          lessThan(tester.getTopLeft(find.text('undo')).dy),
+        );
+        expect(
+          tester.getTopLeft(find.text('undo')).dy,
+          lessThan(tester.getTopLeft(find.text('stream')).dy),
         );
       }
-      expect(
-        tester.getTopLeft(find.text('header')).dy,
-        lessThan(tester.getTopLeft(find.text('composer')).dy),
-      );
-      expect(
-        tester.getTopLeft(find.text('composer')).dy,
-        lessThan(tester.getTopLeft(find.text('undo')).dy),
-      );
-      expect(
-        tester.getTopLeft(find.text('undo')).dy,
-        lessThan(tester.getTopLeft(find.text('stream')).dy),
-      );
-    });
-
-    testWidgets('wide iOS renders vertically', (tester) async {
-      await pumpShell(tester, platform: TargetPlatform.iOS, width: 1200);
-
-      expect(find.byKey(const ValueKey('vertical-layout')), findsOneWidget);
-      expect(find.byKey(const ValueKey('desktop-split-layout')), findsNothing);
     });
 
     testWidgets('composer draft and focus survive a live breakpoint change', (

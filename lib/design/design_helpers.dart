@@ -6,10 +6,31 @@ import 'design_tokens.dart';
 enum GSizeClass { compact, medium, expanded }
 
 GSizeClass sizeClassOf(BuildContext context) {
+  final override = GSizeClassScope.maybeOf(context);
+  if (override != null) return override;
+
   final width = MediaQuery.sizeOf(context).width;
   if (width >= GLayout.bpExpanded) return GSizeClass.expanded;
   if (width >= GLayout.bpMedium) return GSizeClass.medium;
   return GSizeClass.compact;
+}
+
+/// Overrides responsive spacing for a focused layout subtree.
+class GSizeClassScope extends InheritedWidget {
+  const GSizeClassScope({
+    super.key,
+    required this.sizeClass,
+    required super.child,
+  });
+
+  final GSizeClass sizeClass;
+
+  static GSizeClass? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<GSizeClassScope>()?.sizeClass;
+
+  @override
+  bool updateShouldNotify(GSizeClassScope oldWidget) =>
+      sizeClass != oldWidget.sizeClass;
 }
 
 /// Resolves the Gravity palette, falling back to the brightness default so
