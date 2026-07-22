@@ -108,15 +108,7 @@ abstract final class GDecor {
 
 abstract final class GMotion {
   static const settle = Cubic(0.16, 0.99, 0.26, 1);
-  static const colorFast = Duration(milliseconds: 120),
-      color = Duration(milliseconds: 150),
-      colorSlow = Duration(milliseconds: 180),
-      panel = Duration(milliseconds: 320),
-      move = Duration(milliseconds: 380),
-      enterOpacity = Duration(milliseconds: 460),
-      enterMove = Duration(milliseconds: 560),
-      flash = Duration(milliseconds: 960),
-      float = Duration(seconds: 16);
+  static const color = Duration(milliseconds: 150);
 }
 
 abstract final class GShadows {

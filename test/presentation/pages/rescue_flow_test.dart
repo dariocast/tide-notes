@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tide/app.dart';
+import 'package:tide/design/design_helpers.dart';
 import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
@@ -17,7 +18,6 @@ import 'package:tide/domain/usecases/watch_notes.dart';
 import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
-import 'package:tide/presentation/widgets/note_card.dart';
 
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
@@ -116,31 +116,35 @@ void main() {
     expect(repository.undoCalls, 1);
   });
 
-  testWidgets('reduced motion uses short transition', (tester) async {
-    final stamp = timestamp;
+  testWidgets('OS reduced motion removes non-essential duration', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: TideAppTheme.foam,
-        home: MediaQuery(
-          data: const MediaQueryData(disableAnimations: true),
-          child: Scaffold(
-            body: NoteCard(
-              note: note('reduced'),
-              index: 1,
-              onChanged: (_) {},
-              onRescue: () {},
-            ),
-          ),
+        home: const MediaQuery(
+          data: MediaQueryData(disableAnimations: true),
+          child: _MotionProbe(),
         ),
       ),
     );
-
-    final animated = tester.widget<AnimatedContainer>(
-      find.byKey(const ValueKey('note-row')),
+    expect(
+      tester
+          .widget<AnimatedContainer>(find.byKey(const ValueKey('probe')))
+          .duration,
+      Duration.zero,
     );
-    expect(animated.duration, GMotion.colorFast);
-    expect(stamp, timestamp);
   });
+}
+
+class _MotionProbe extends StatelessWidget {
+  const _MotionProbe();
+
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+    key: const ValueKey('probe'),
+    duration: context.motion.duration(GMotion.color),
+  );
 }
 
 final class RescueRepository implements NoteRepository {

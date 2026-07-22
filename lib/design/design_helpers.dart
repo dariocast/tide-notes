@@ -93,17 +93,18 @@ class Hairline extends StatelessWidget {
   );
 }
 
-class TideMotion {
-  const TideMotion(this.context);
+class TideMotionPolicy {
+  const TideMotionPolicy(this.context);
 
   final BuildContext context;
 
-  Duration duration(Duration value) =>
-      MediaQuery.disableAnimationsOf(context) ? GMotion.colorFast : value;
+  bool get reduceMotion => MediaQuery.disableAnimationsOf(context);
+
+  Duration duration(Duration normal) => reduceMotion ? Duration.zero : normal;
 }
 
-extension TideMotionContext on BuildContext {
-  TideMotion get motion => TideMotion(this);
+extension TideContext on BuildContext {
+  TideMotionPolicy get motion => TideMotionPolicy(this);
 }
 
 class FocusRing extends StatelessWidget {
