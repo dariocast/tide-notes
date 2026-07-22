@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
 import 'package:tide/design/appearance_controller.dart';
+import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
@@ -339,6 +340,31 @@ void main() {
       tester.getSize(find.byKey(const ValueKey('composer'))).height,
       lessThan(110),
     );
+  });
+
+  testWidgets('composer surface and note rows use organic shape language', (
+    tester,
+  ) async {
+    await pumpPage(tester, notes: [makeNote('one')]);
+    await tester.pump();
+
+    final composerSurface = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('composer-surface')),
+    );
+    final composerDecoration = composerSurface.decoration as BoxDecoration;
+    expect(composerDecoration.borderRadius, GShapes.composer);
+    expect(composerDecoration.boxShadow, isNull);
+
+    final noteRow = tester.widget<AnimatedContainer>(
+      find.byKey(const ValueKey('note-row')),
+    );
+    final noteDecoration = noteRow.decoration as BoxDecoration;
+    expect((noteDecoration.border as Border?)?.left, BorderSide.none);
+    expect(noteDecoration.borderRadius, isNull);
+
+    final noteContext = tester.element(find.byKey(const ValueKey('note-row')));
+    expect(Theme.of(noteContext).textTheme.bodyMedium?.fontFamily, 'Nunito');
+    expect(find.text('Tide'), findsOneWidget);
   });
 
   testWidgets('empty stream guidance is left aligned', (tester) async {

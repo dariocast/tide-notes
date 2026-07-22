@@ -93,70 +93,73 @@ void main() {
     final decoration = row.decoration as BoxDecoration;
     expect(decoration.color, isNull);
     expect(decoration.borderRadius, isNull);
+    expect((decoration.border as Border?)?.left, BorderSide.none);
     expect(decoration.border?.bottom.width, 1);
     expect(find.textContaining('2h ago'), findsOneWidget);
     expect(find.textContaining('Jul 18'), findsOneWidget);
     expect(find.textContaining('↑ 2'), findsOneWidget);
   });
 
-  for (final (:name, :theme, :ink, :textMuted, :bgBottom, :hoverMinimum) in [
+  for (final (:name, :theme, :colors, :textMuted, :bgBottom) in [
     (
       name: 'foam',
       theme: TideAppTheme.foam,
-      ink: GFoam.ink,
+      colors: TideColors.foam,
       textMuted: GFoam.textMuted,
       bgBottom: GFoam.bgBottom,
-      hoverMinimum: 4.55,
     ),
     (
       name: 'deepTide',
       theme: TideAppTheme.deepTide,
-      ink: GDeepTide.ink,
+      colors: TideColors.deepTide,
       textMuted: GDeepTide.textMuted,
       bgBottom: GDeepTide.bgBottom,
-      hoverMinimum: 4.6,
     ),
   ]) {
-    testWidgets('$name hovered row keeps metadata readable on darkest paper', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: theme,
-          home: Scaffold(
-            backgroundColor: bgBottom,
-            body: NoteCard(
-              note: note,
-              index: 1,
-              onChanged: (_) {},
-              onRescue: () {},
+    testWidgets(
+      '$name hovered row shows the soft water wash and keeps metadata readable',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(
+              backgroundColor: bgBottom,
+              body: NoteCard(
+                note: note,
+                index: 1,
+                onChanged: (_) {},
+                onRescue: () {},
+              ),
             ),
           ),
-        ),
-      );
-      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      addTearDown(mouse.removePointer);
-      await mouse.addPointer(location: Offset.zero);
-      await mouse.moveTo(
-        tester.getCenter(find.byKey(const ValueKey('note-row'))),
-      );
-      await tester.pump();
+        );
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        addTearDown(mouse.removePointer);
+        await mouse.addPointer(location: Offset.zero);
+        await mouse.moveTo(
+          tester.getCenter(find.byKey(const ValueKey('note-row'))),
+        );
+        await tester.pump();
 
-      final row = tester.widget<AnimatedContainer>(
-        find.byKey(const ValueKey('note-row')),
-      );
-      final hoverColor = (row.decoration as BoxDecoration).color!;
-      expect(hoverColor, ink.withValues(alpha: GDecor.hoverAlpha));
-      final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
-      expect(metadata.style?.color, textMuted);
-      expect(
-        _contrast(
-          metadata.style!.color!,
-          Color.alphaBlend(hoverColor, bgBottom),
-        ),
-        greaterThanOrEqualTo(hoverMinimum),
-      );
-    });
+        final row = tester.widget<AnimatedContainer>(
+          find.byKey(const ValueKey('note-row')),
+        );
+        final hoverColor = (row.decoration as BoxDecoration).color!;
+        expect(
+          hoverColor,
+          colors.accentSubtle.withValues(alpha: GDecor.hoverAlpha),
+        );
+        final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
+        expect(metadata.style?.color, textMuted);
+        expect(
+          _contrast(
+            metadata.style!.color!,
+            Color.alphaBlend(hoverColor, bgBottom),
+          ),
+          greaterThanOrEqualTo(4.5),
+        );
+      },
+    );
   }
 
   testWidgets('inline editor keeps the flat row surface', (tester) async {

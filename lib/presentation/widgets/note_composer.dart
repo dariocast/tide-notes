@@ -88,56 +88,63 @@ class _NoteComposerState extends State<NoteComposer> {
             ),
           },
           child: FocusRing(
+            borderRadius: GShapes.composer,
             child: DecoratedBox(
+              key: const ValueKey('composer-surface'),
               decoration: BoxDecoration(
                 color: g.surfaceElevated,
-                border: Border(
-                  left: BorderSide(color: g.accent, width: GDecor.railWidth),
-                  top: BorderSide(color: g.lineSubtle),
-                  right: BorderSide(color: g.lineSubtle),
-                  bottom: BorderSide(color: g.lineSubtle),
-                ),
-                boxShadow: const [GShadows.shadowRaise],
+                border: Border.all(color: g.lineSubtle),
+                borderRadius: GShapes.composer,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const ValueKey('composer-input'),
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      minLines: 2,
-                      maxLines: 5,
-                      keyboardType: TextInputType.multiline,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        hintText: 'Capture a thought…',
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: GSpace.s4,
-                          vertical: GSpace.s3,
+              child: ClipRRect(
+                borderRadius: GShapes.composer,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        key: const ValueKey('composer-input'),
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        minLines: 2,
+                        maxLines: 5,
+                        keyboardType: TextInputType.multiline,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          hintText: 'Capture a thought…',
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: GSpace.s4,
+                            vertical: GSpace.s3,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(GSpace.s2),
-                    child: Semantics(
-                      label: 'Save note',
-                      button: true,
-                      onTap: _submit,
-                      child: ExcludeSemantics(
-                        child: FilledButton(
-                          onPressed: _submit,
-                          child: const Icon(Icons.arrow_upward_rounded),
+                    Padding(
+                      padding: const EdgeInsets.all(GSpace.s2),
+                      child: Semantics(
+                        label: 'Save note',
+                        button: true,
+                        onTap: _submit,
+                        child: ExcludeSemantics(
+                          child: SizedBox.square(
+                            dimension: GLayout.minTouchTarget,
+                            child: FilledButton(
+                              onPressed: _submit,
+                              style: FilledButton.styleFrom(
+                                shape: const CircleBorder(),
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: const Icon(Icons.arrow_upward_rounded),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

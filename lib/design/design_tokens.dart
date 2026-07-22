@@ -98,30 +98,13 @@ abstract final class GDecor {
   static const crossSize = 19.0,
       crossThickness = 1.0,
       crossOffset = 14.0,
-      railWidth = 2.5,
       hairline = 1.0;
-  static const hoverAlpha = 0.05,
-      pressAlpha = 0.09,
-      bloomAlpha = 0.55,
-      swipeGlyphAlpha = 0.16;
+  static const hoverAlpha = 0.05, pressAlpha = 0.09;
 }
 
 abstract final class GMotion {
   static const settle = Cubic(0.16, 0.99, 0.26, 1);
   static const color = Duration(milliseconds: 150);
-}
-
-abstract final class GShadows {
-  static const shadowSoft = BoxShadow(
-    color: Color(0x141A1714),
-    blurRadius: 40,
-    offset: Offset(0, 14),
-  );
-  static const shadowRaise = BoxShadow(
-    color: Color(0x1F1A1714),
-    blurRadius: 24,
-    offset: Offset(0, 8),
-  );
 }
 
 abstract final class GRadii {
