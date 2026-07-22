@@ -24,7 +24,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: GravityAppTheme.light,
-        home: const Scaffold(body: PrefixText(content: 'idea: calm capture', index: 8)),
+        home: const Scaffold(
+          body: PrefixText(content: 'idea: calm capture', index: 8),
+        ),
       ),
     );
 
