@@ -189,4 +189,49 @@ void main() {
       before.width,
     );
   });
+
+  testWidgets(
+    'disposing a mid-edit card without a focus-loss event still reports '
+    'editing as ended',
+    (tester) async {
+      var editing = false;
+      var showCard = true;
+      late StateSetter setHostState;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: TideAppTheme.foam,
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                setHostState = setState;
+                return showCard
+                    ? NoteCard(
+                        note: note,
+                        index: 0,
+                        onChanged: (_) {},
+                        onRescue: () {},
+                        onEditingChanged: (value) => editing = value,
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(PrefixText));
+      await tester.pump();
+      expect(editing, isTrue);
+      expect(find.byType(TextField), findsOneWidget);
+
+      // Swap the mid-edit card out for an unrelated widget, tearing down
+      // its State via dispose() without ever routing through the focus
+      // loss handler (no unfocus/blur happens here).
+      setHostState(() => showCard = false);
+      await tester.pump();
+
+      expect(editing, isFalse);
+    },
+  );
 }

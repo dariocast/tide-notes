@@ -84,6 +84,7 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   void dispose() {
+    if (_editing) widget.onEditingChanged?.call(false);
     _focusNode
       ..removeListener(_handleFocusChange)
       ..dispose();
