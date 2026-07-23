@@ -184,12 +184,27 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Tema'));
+    await tester.tap(find.text('Theme'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Abyss'));
     await tester.pumpAndSettle();
 
     expect(appearance.selection, TideThemeSelection.abyss);
+  });
+
+  testWidgets('language setting switches the app to Italian', (tester) async {
+    final appearance = AppearanceController.inMemory();
+    await pumpPage(tester, appearance: appearance);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Language'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🇮🇹  Italiano'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cattura un pensiero…'), findsOneWidget);
+    expect(appearance.language, TideLanguageSelection.italian);
   });
 
   testWidgets('delete all asks for confirmation before dispatching', (
@@ -199,19 +214,19 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Elimina tutte le note'));
+    await tester.tap(find.text('Delete all notes'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Eliminare tutte le note?'), findsOneWidget);
-    await tester.tap(find.text('Annulla'));
+    expect(find.text('Delete all notes?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(repository.deleteAllCalls, 0);
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Elimina tutte le note'));
+    await tester.tap(find.text('Delete all notes'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Elimina tutto'));
+    await tester.tap(find.text('Delete all'));
     await tester.pumpAndSettle();
     expect(repository.deleteAllCalls, 1);
   });
@@ -229,8 +244,8 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Appearance settings'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Tema'), findsOneWidget);
-      await tester.tap(find.text('Tema'));
+      expect(find.text('Theme'), findsOneWidget);
+      await tester.tap(find.text('Theme'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Abyss'));

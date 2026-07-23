@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'design/appearance_controller.dart';
 import 'design/theme.dart';
+import 'l10n/tide_localizations.dart';
 
 class TideApp extends StatefulWidget {
   const TideApp({super.key, required this.home, this.appearance});
@@ -39,6 +41,12 @@ class _TideAppState extends State<TideApp> {
           theme: TideAppTheme.foam,
           darkTheme: darkTheme,
           themeMode: themeMode,
+          locale: _appearance.locale,
+          supportedLocales: const [Locale('en'), Locale('it')],
+          localizationsDelegates: const [
+            TideLocalizationsDelegate(),
+            ...GlobalMaterialLocalizations.delegates,
+          ],
           home: widget.home,
         ),
       );

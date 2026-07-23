@@ -3,16 +3,24 @@ import 'package:flutter/material.dart';
 
 import '../../design/appearance_controller.dart';
 import '../../design/tide_icons.dart';
+import '../../app_version.dart';
+import '../../l10n/tide_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-const themeLabels = {
-  TideThemeSelection.system: 'System',
-  TideThemeSelection.foam: 'Foam',
-  TideThemeSelection.deepTide: 'Deep Tide',
-  TideThemeSelection.abyss: 'Abyss',
-};
+String themeLabel(TideThemeSelection selection, TideLocalizations l10n) =>
+    switch (selection) {
+      TideThemeSelection.system => l10n.systemLanguage,
+      TideThemeSelection.foam => 'Foam',
+      TideThemeSelection.deepTide => 'Deep Tide',
+      TideThemeSelection.abyss => 'Abyss',
+    };
 
-const appVersionLabel = 'Versione 1.1.1';
+String languageLabel(TideLanguageSelection selection, TideLocalizations l10n) =>
+    switch (selection) {
+      TideLanguageSelection.system => l10n.systemLanguage,
+      TideLanguageSelection.italian => '🇮🇹  ${l10n.italian}',
+      TideLanguageSelection.english => '🇬🇧  ${l10n.english}',
+    };
 
 class TideSettingsButton extends StatelessWidget {
   const TideSettingsButton({
@@ -28,9 +36,10 @@ class TideSettingsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final appearance = AppearanceScope.maybeOf(context);
     if (appearance == null) return const SizedBox.shrink();
+    final l10n = TideLocalizations.of(context);
 
     return Semantics(
-      label: 'Appearance settings',
+      label: l10n.appearanceSettings,
       button: true,
       child: defaultTargetPlatform == TargetPlatform.macOS
           ? _MacSettingsMenu(
@@ -39,7 +48,7 @@ class TideSettingsButton extends StatelessWidget {
               onDeleteAll: onDeleteAll,
             )
           : IconButton(
-              tooltip: 'Menu',
+              tooltip: l10n.menu,
               icon: const FaIcon(TideIcons.menu, size: 20),
               onPressed: () => _showSettingsSheet(
                 context,
@@ -52,7 +61,7 @@ class TideSettingsButton extends StatelessWidget {
   }
 }
 
-enum _MenuAction { theme, submitOnEnter, export, deleteAll }
+enum _MenuAction { theme, language, submitOnEnter, export, deleteAll }
 
 Future<void> _showSettingsSheet(
   BuildContext context,
@@ -65,19 +74,35 @@ Future<void> _showSettingsSheet(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Builder(
+          builder: (context) {
+            final l10n = TideLocalizations.of(context);
+            return ListTile(
+              leading: FaIcon(
+                TideIcons.theme,
+                color: Theme.of(context).iconTheme.color,
+                size: 18,
+              ),
+              title: Text(l10n.theme),
+              trailing: FaIcon(
+                TideIcons.next,
+                color: Theme.of(context).iconTheme.color,
+                size: 14,
+              ),
+              onTap: () => _showThemeSheet(sheetContext, appearance),
+            );
+          },
+        ),
         ListTile(
-          leading: FaIcon(
-            TideIcons.theme,
-            color: Theme.of(sheetContext).iconTheme.color,
-            size: 18,
+          leading: const Text('🌐'),
+          title: Text(TideLocalizations.of(sheetContext).language),
+          trailing: Text(
+            languageLabel(
+              appearance.language,
+              TideLocalizations.of(sheetContext),
+            ),
           ),
-          title: const Text('Tema'),
-          trailing: FaIcon(
-            TideIcons.next,
-            color: Theme.of(sheetContext).iconTheme.color,
-            size: 14,
-          ),
-          onTap: () => _showThemeSheet(sheetContext, appearance),
+          onTap: () => _showLanguageSheet(sheetContext, appearance),
         ),
         ListTile(
           leading: FaIcon(
@@ -85,7 +110,7 @@ Future<void> _showSettingsSheet(
             color: Theme.of(sheetContext).iconTheme.color,
             size: 18,
           ),
-          title: const Text('Esporta note'),
+          title: Text(TideLocalizations.of(sheetContext).exportNotes),
           onTap: () {
             Navigator.of(sheetContext).pop();
             onExport();
@@ -97,7 +122,7 @@ Future<void> _showSettingsSheet(
             color: Theme.of(sheetContext).iconTheme.color,
             size: 18,
           ),
-          title: const Text('Invio rapido'),
+          title: Text(TideLocalizations.of(sheetContext).quickSubmit),
           value: appearance.submitOnEnter,
           onChanged: appearance.setSubmitOnEnter,
         ),
@@ -108,7 +133,7 @@ Future<void> _showSettingsSheet(
             size: 18,
           ),
           title: Text(
-            'Elimina tutte le note',
+            TideLocalizations.of(sheetContext).deleteAllNotes,
             style: TextStyle(color: Theme.of(sheetContext).colorScheme.error),
           ),
           onTap: () {
@@ -119,7 +144,7 @@ Future<void> _showSettingsSheet(
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 12),
           child: Text(
-            appVersionLabel,
+            '${TideLocalizations.of(sheetContext).versionLabel} $appVersion',
             style: Theme.of(sheetContext).textTheme.bodySmall,
           ),
         ),
@@ -137,10 +162,12 @@ Future<void> _showThemeSheet(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const ListTile(title: Text('Tema')),
+        ListTile(title: Text(TideLocalizations.of(sheetContext).theme)),
         for (final selection in TideThemeSelection.values)
           ListTile(
-            title: Text(themeLabels[selection]!),
+            title: Text(
+              themeLabel(selection, TideLocalizations.of(sheetContext)),
+            ),
             trailing: appearance.selection == selection
                 ? FaIcon(
                     TideIcons.check,
@@ -159,6 +186,40 @@ Future<void> _showThemeSheet(
   ),
 );
 
+Future<void> _showLanguageSheet(
+  BuildContext context,
+  AppearanceController appearance,
+) => showModalBottomSheet<void>(
+  context: context,
+  builder: (sheetContext) {
+    final l10n = TideLocalizations.of(sheetContext);
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(title: Text(l10n.language)),
+          for (final selection in TideLanguageSelection.values)
+            ListTile(
+              title: Text(languageLabel(selection, l10n)),
+              trailing: appearance.language == selection
+                  ? FaIcon(
+                      TideIcons.check,
+                      color: Theme.of(sheetContext).iconTheme.color,
+                      size: 14,
+                    )
+                  : null,
+              selected: appearance.language == selection,
+              onTap: () {
+                appearance.setLanguage(selection);
+                Navigator.of(sheetContext).pop();
+              },
+            ),
+        ],
+      ),
+    );
+  },
+);
+
 Future<void> _confirmDelete(
   BuildContext context,
   VoidCallback onDeleteAll,
@@ -166,18 +227,16 @@ Future<void> _confirmDelete(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Eliminare tutte le note?'),
-      content: const Text(
-        'Questa azione eliminerà definitivamente tutte le note.',
-      ),
+      title: Text(TideLocalizations.of(dialogContext).deleteAllTitle),
+      content: Text(TideLocalizations.of(dialogContext).deleteAllBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Annulla'),
+          child: Text(TideLocalizations.of(dialogContext).cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Elimina tutto'),
+          child: Text(TideLocalizations.of(dialogContext).deleteAll),
         ),
       ],
     ),
@@ -197,65 +256,76 @@ class _MacSettingsMenu extends StatelessWidget {
   final VoidCallback onDeleteAll;
 
   @override
-  Widget build(BuildContext context) => PopupMenuButton<_MenuAction>(
-    tooltip: 'Menu',
-    icon: const FaIcon(TideIcons.menu, size: 20),
-    onSelected: (action) {
-      switch (action) {
-        case _MenuAction.theme:
-          _showThemeSheet(context, appearance);
-        case _MenuAction.submitOnEnter:
-          appearance.setSubmitOnEnter(!appearance.submitOnEnter);
-        case _MenuAction.export:
-          onExport();
-        case _MenuAction.deleteAll:
-          _confirmDelete(context, onDeleteAll);
-      }
-    },
-    itemBuilder: (context) => [
-      PopupMenuItem(
-        value: _MenuAction.theme,
-        child: Row(
-          children: [
-            Expanded(child: Text('Tema')),
-            FaIcon(
-              TideIcons.next,
-              color: Theme.of(context).iconTheme.color,
-              size: 14,
-            ),
-          ],
-        ),
-      ),
-      const PopupMenuDivider(),
-      PopupMenuItem(
-        value: _MenuAction.submitOnEnter,
-        child: Row(
-          children: [
-            const Expanded(child: Text('Invio rapido')),
-            if (appearance.submitOnEnter)
+  Widget build(BuildContext context) {
+    final l10n = TideLocalizations.of(context);
+    return PopupMenuButton<_MenuAction>(
+      tooltip: l10n.menu,
+      icon: const FaIcon(TideIcons.menu, size: 20),
+      onSelected: (action) {
+        switch (action) {
+          case _MenuAction.theme:
+            _showThemeSheet(context, appearance);
+          case _MenuAction.language:
+            _showLanguageSheet(context, appearance);
+          case _MenuAction.submitOnEnter:
+            appearance.setSubmitOnEnter(!appearance.submitOnEnter);
+          case _MenuAction.export:
+            onExport();
+          case _MenuAction.deleteAll:
+            _confirmDelete(context, onDeleteAll);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: _MenuAction.theme,
+          child: Row(
+            children: [
+              Expanded(child: Text(l10n.theme)),
               FaIcon(
-                TideIcons.check,
+                TideIcons.next,
                 color: Theme.of(context).iconTheme.color,
                 size: 14,
               ),
-          ],
+            ],
+          ),
         ),
-      ),
-      const PopupMenuItem(
-        value: _MenuAction.export,
-        child: Text('Esporta note'),
-      ),
-      PopupMenuItem(
-        value: _MenuAction.deleteAll,
-        child: Text(
-          'Elimina tutte le note',
-          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: _MenuAction.language,
+          child: Row(
+            children: [
+              Expanded(child: Text(l10n.language)),
+              Text(languageLabel(appearance.language, l10n)),
+            ],
+          ),
         ),
-      ),
-      const PopupMenuItem<_MenuAction>(
-        enabled: false,
-        child: Text(appVersionLabel),
-      ),
-    ],
-  );
+        PopupMenuItem(
+          value: _MenuAction.submitOnEnter,
+          child: Row(
+            children: [
+              Expanded(child: Text(l10n.quickSubmit)),
+              if (appearance.submitOnEnter)
+                FaIcon(
+                  TideIcons.check,
+                  color: Theme.of(context).iconTheme.color,
+                  size: 14,
+                ),
+            ],
+          ),
+        ),
+        PopupMenuItem(value: _MenuAction.export, child: Text(l10n.exportNotes)),
+        PopupMenuItem(
+          value: _MenuAction.deleteAll,
+          child: Text(
+            l10n.deleteAllNotes,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ),
+        PopupMenuItem<_MenuAction>(
+          enabled: false,
+          child: Text('${l10n.versionLabel} $appVersion'),
+        ),
+      ],
+    );
+  }
 }

@@ -7,32 +7,53 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// equivalent.
 enum TideThemeSelection { system, foam, deepTide, abyss }
 
+enum TideLanguageSelection { system, italian, english }
+
 class AppearanceController extends ChangeNotifier {
   AppearanceController._(
     this._preferences,
     this._selection,
     this._submitOnEnter,
+    this._language,
   );
 
   static const _themeKey = 'tide_theme';
   static const _submitOnEnterKey = 'tide_submit_on_enter';
+  static const _languageKey = 'tide_language';
   final SharedPreferences? _preferences;
   TideThemeSelection _selection;
   bool _submitOnEnter;
+  TideLanguageSelection _language;
 
   TideThemeSelection get selection => _selection;
   bool get submitOnEnter => _submitOnEnter;
+  TideLanguageSelection get language => _language;
+  Locale? get locale => switch (_language) {
+    TideLanguageSelection.system => null,
+    TideLanguageSelection.italian => const Locale('it'),
+    TideLanguageSelection.english => const Locale('en'),
+  };
 
   static Future<AppearanceController> load() async {
     try {
       final preferences = await SharedPreferences.getInstance();
       final stored = preferences.getString(_themeKey);
       final submitOnEnter = preferences.getBool(_submitOnEnterKey) ?? false;
+      final storedLanguage = preferences.getString(_languageKey);
+      final language = TideLanguageSelection.values.firstWhere(
+        (value) => value.name == storedLanguage,
+        orElse: () => TideLanguageSelection.system,
+      );
       final selection = TideThemeSelection.values.firstWhere(
         (value) => value.name == stored,
         orElse: () => TideThemeSelection.system,
       );
-      return AppearanceController._(preferences, selection, submitOnEnter);
+      return AppearanceController._(
+        preferences,
+        selection,
+        submitOnEnter,
+        language,
+      );
     } catch (_) {
       return AppearanceController.inMemory();
     }
@@ -41,7 +62,8 @@ class AppearanceController extends ChangeNotifier {
   factory AppearanceController.inMemory({
     TideThemeSelection selection = TideThemeSelection.system,
     bool submitOnEnter = false,
-  }) => AppearanceController._(null, selection, submitOnEnter);
+    TideLanguageSelection language = TideLanguageSelection.system,
+  }) => AppearanceController._(null, selection, submitOnEnter, language);
 
   Future<void> setSelection(TideThemeSelection value) async {
     if (_selection == value) return;
@@ -58,6 +80,15 @@ class AppearanceController extends ChangeNotifier {
     notifyListeners();
     try {
       await _preferences?.setBool(_submitOnEnterKey, value);
+    } catch (_) {}
+  }
+
+  Future<void> setLanguage(TideLanguageSelection value) async {
+    if (_language == value) return;
+    _language = value;
+    notifyListeners();
+    try {
+      await _preferences?.setString(_languageKey, value.name);
     } catch (_) {}
   }
 }

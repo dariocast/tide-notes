@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
 import 'tide_settings.dart';
+import '../../l10n/tide_localizations.dart';
 
 class TideHeader extends StatelessWidget {
   const TideHeader({
@@ -20,9 +21,8 @@ class TideHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final countLabel = noteCount == 1
-        ? '1 note captured'
-        : '$noteCount notes captured';
+    final l10n = TideLocalizations.of(context);
+    final countLabel = l10n.notesCaptured(noteCount);
     final date = MaterialLocalizations.of(context).formatMediumDate(now);
     final g = Theme.of(context).extension<TideColors>()!;
     final compact = sizeClassOf(context) == GSizeClass.compact;

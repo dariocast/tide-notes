@@ -8,6 +8,7 @@ import '../../design/design_tokens.dart';
 import '../../design/tide_icons.dart';
 import '../../core/utils/note_metadata_formatter.dart';
 import '../../domain/entities/note.dart';
+import '../../l10n/tide_localizations.dart';
 import 'prefix_text.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -104,10 +105,11 @@ class _NoteCardState extends State<NoteCard> {
   @override
   Widget build(BuildContext context) {
     final g = tideColorsOf(context);
+    final l10n = TideLocalizations.of(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
     final rescue = rescueMetadata(widget.note.rescueCount);
     final metadata = [
-      relativeSurfacedAge(widget.note.surfacedAt, widget.now()),
+      l10n.relativeSurfacedAge(widget.note.surfacedAt, widget.now()),
       MaterialLocalizations.of(
         context,
       ).formatMediumDate(widget.note.surfacedAt),
@@ -143,13 +145,13 @@ class _NoteCardState extends State<NoteCard> {
                     focusNode: _focusNode,
                     maxLines: null,
                     textInputAction: TextInputAction.newline,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                       isDense: true,
-                      labelText: 'Edit note',
+                      labelText: l10n.editNote,
                     ),
                     onTapOutside: (_) => _focusNode.unfocus(),
                     onChanged: widget.onChanged,
@@ -164,13 +166,13 @@ class _NoteCardState extends State<NoteCard> {
           if (!_editing && widget.onUndo != null)
             IconButton(
               onPressed: widget.busy ? null : widget.onUndo,
-              tooltip: 'Undo rescue',
+              tooltip: l10n.undoRescue,
               icon: const FaIcon(TideIcons.undo, size: 18),
             )
           else if (!_editing && widget.rescueEnabled)
             IconButton(
               onPressed: widget.busy ? null : widget.onRescue,
-              tooltip: 'Rescue note',
+              tooltip: l10n.rescueNote,
               icon: const FaIcon(TideIcons.surface, size: 18),
             ),
         ],
@@ -192,11 +194,11 @@ class _NoteCardState extends State<NoteCard> {
     }
 
     return Semantics(
-      label: 'Rescue note',
+      label: l10n.rescueNote,
       hint: widget.note.content,
       button: true,
       customSemanticsActions: {
-        const CustomSemanticsAction(label: 'Rescue note'): widget.onRescue,
+        CustomSemanticsAction(label: l10n.rescueNote): widget.onRescue,
       },
       child: Dismissible(
         key: ValueKey(widget.note.id),

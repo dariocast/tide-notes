@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../l10n/tide_localizations.dart';
 
 class TideEmptyState extends StatelessWidget {
   const TideEmptyState({super.key});
@@ -10,6 +11,7 @@ class TideEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = tideColorsOf(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
+    final l10n = TideLocalizations.of(context);
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -23,7 +25,7 @@ class TideEmptyState extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your stream is quiet.',
+              l10n.emptyTitle,
               style: Theme.of(context).textTheme.headlineMedium,
               textAlign: TextAlign.left,
             ),
@@ -33,7 +35,7 @@ class TideEmptyState extends StatelessWidget {
                 maxWidth: GLayout.contentNarrow,
               ),
               child: Text(
-                'Capture anything above. Append freely, review what sinks, rescue what still matters.',
+                l10n.emptyBody,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: g.textMuted),

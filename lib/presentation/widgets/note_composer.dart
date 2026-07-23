@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
 import '../../design/tide_icons.dart';
+import '../../l10n/tide_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SubmitIntent extends Intent {
@@ -73,6 +74,7 @@ class _NoteComposerState extends State<NoteComposer> {
   Widget build(BuildContext context) {
     final compact = sizeClassOf(context) == GSizeClass.compact;
     final g = tideColorsOf(context);
+    final l10n = TideLocalizations.of(context);
     return Padding(
       key: const ValueKey('composer'),
       padding: EdgeInsets.fromLTRB(
@@ -127,11 +129,11 @@ class _NoteComposerState extends State<NoteComposer> {
                             : null,
                         onTapOutside: (_) => _focusNode.unfocus(),
                         style: Theme.of(context).textTheme.bodyMedium,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
-                          hintText: 'Capture a thought…',
+                          hintText: l10n.captureHint,
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: GSpace.s4,
                             vertical: GSpace.s2,
@@ -140,12 +142,12 @@ class _NoteComposerState extends State<NoteComposer> {
                       ),
                     ),
                     Semantics(
-                      label: 'Save note',
+                      label: l10n.saveNote,
                       button: true,
                       onTap: _submit,
                       child: IconButton(
                         onPressed: _submit,
-                        tooltip: 'Save note',
+                        tooltip: l10n.saveNote,
                         icon: const FaIcon(TideIcons.insert, size: 18),
                       ),
                     ),

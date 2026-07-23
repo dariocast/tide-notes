@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../design/design_helpers.dart';
 import '../../design/appearance_controller.dart';
 import '../../design/tide_icons.dart';
+import '../../l10n/tide_localizations.dart';
 import '../blocs/tide_bloc.dart';
 import '../blocs/tide_event.dart';
 import '../blocs/tide_state.dart';
@@ -29,6 +30,7 @@ class TidePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BlocConsumer<TideBloc, TideState>(
     listener: (context, state) {
+      final l10n = TideLocalizations.of(context);
       final message = state.message;
       if (message == null) return;
       if (message == 'Rescued') {
@@ -37,7 +39,7 @@ class TidePage extends StatelessWidget {
       }
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
+        ..showSnackBar(SnackBar(content: Text(l10n.message(message))));
       context.read<TideBloc>().add(const TideMessageAcknowledged());
     },
     builder: (context, state) {
@@ -49,7 +51,7 @@ class TidePage extends StatelessWidget {
                 onPressed: () =>
                     context.read<TideBloc>().add(const TideStarted()),
                 icon: const FaIcon(TideIcons.refresh),
-                label: const Text('Retry'),
+                label: Text(TideLocalizations.of(context).retry),
               ),
             ),
           ),
