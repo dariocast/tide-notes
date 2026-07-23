@@ -71,84 +71,90 @@ Future<void> _showSettingsSheet(
 ) => showModalBottomSheet<void>(
   context: context,
   builder: (sheetContext) => SafeArea(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Builder(
-          builder: (context) {
-            final l10n = TideLocalizations.of(context);
-            return ListTile(
-              leading: FaIcon(
-                TideIcons.theme,
-                color: Theme.of(context).iconTheme.color,
-                size: 18,
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Builder(
+            builder: (context) {
+              final l10n = TideLocalizations.of(context);
+              return ListTile(
+                leading: FaIcon(
+                  TideIcons.theme,
+                  color: Theme.of(context).iconTheme.color,
+                  size: 18,
+                ),
+                title: Text(l10n.theme),
+                trailing: FaIcon(
+                  TideIcons.next,
+                  color: Theme.of(context).iconTheme.color,
+                  size: 14,
+                ),
+                onTap: () => _showThemeSheet(sheetContext, appearance),
+              );
+            },
+          ),
+          ListTile(
+            leading: FaIcon(
+              TideIcons.language,
+              color: Theme.of(sheetContext).iconTheme.color,
+              size: 18,
+            ),
+            title: Text(TideLocalizations.of(sheetContext).language),
+            trailing: Text(
+              languageLabel(
+                appearance.language,
+                TideLocalizations.of(sheetContext),
               ),
-              title: Text(l10n.theme),
-              trailing: FaIcon(
-                TideIcons.next,
-                color: Theme.of(context).iconTheme.color,
-                size: 14,
-              ),
-              onTap: () => _showThemeSheet(sheetContext, appearance),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Text('🌐'),
-          title: Text(TideLocalizations.of(sheetContext).language),
-          trailing: Text(
-            languageLabel(
-              appearance.language,
-              TideLocalizations.of(sheetContext),
+            ),
+            onTap: () => _showLanguageSheet(sheetContext, appearance),
+          ),
+          ListTile(
+            leading: FaIcon(
+              TideIcons.export,
+              color: Theme.of(sheetContext).iconTheme.color,
+              size: 18,
+            ),
+            title: Text(TideLocalizations.of(sheetContext).exportNotes),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              onExport();
+            },
+          ),
+          SwitchListTile(
+            secondary: FaIcon(
+              TideIcons.insert,
+              color: Theme.of(sheetContext).iconTheme.color,
+              size: 18,
+            ),
+            title: Text(TideLocalizations.of(sheetContext).quickSubmit),
+            value: appearance.submitOnEnter,
+            onChanged: appearance.setSubmitOnEnter,
+          ),
+          ListTile(
+            leading: FaIcon(
+              TideIcons.deleteAll,
+              color: Theme.of(sheetContext).colorScheme.error,
+              size: 18,
+            ),
+            title: Text(
+              TideLocalizations.of(sheetContext).deleteAllNotes,
+              style: TextStyle(color: Theme.of(sheetContext).colorScheme.error),
+            ),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              _confirmDelete(context, onDeleteAll);
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 12),
+            child: Text(
+              '${TideLocalizations.of(sheetContext).versionLabel} $appVersion',
+              style: Theme.of(sheetContext).textTheme.bodySmall,
             ),
           ),
-          onTap: () => _showLanguageSheet(sheetContext, appearance),
-        ),
-        ListTile(
-          leading: FaIcon(
-            TideIcons.export,
-            color: Theme.of(sheetContext).iconTheme.color,
-            size: 18,
-          ),
-          title: Text(TideLocalizations.of(sheetContext).exportNotes),
-          onTap: () {
-            Navigator.of(sheetContext).pop();
-            onExport();
-          },
-        ),
-        SwitchListTile(
-          secondary: FaIcon(
-            TideIcons.insert,
-            color: Theme.of(sheetContext).iconTheme.color,
-            size: 18,
-          ),
-          title: Text(TideLocalizations.of(sheetContext).quickSubmit),
-          value: appearance.submitOnEnter,
-          onChanged: appearance.setSubmitOnEnter,
-        ),
-        ListTile(
-          leading: FaIcon(
-            TideIcons.deleteAll,
-            color: Theme.of(sheetContext).colorScheme.error,
-            size: 18,
-          ),
-          title: Text(
-            TideLocalizations.of(sheetContext).deleteAllNotes,
-            style: TextStyle(color: Theme.of(sheetContext).colorScheme.error),
-          ),
-          onTap: () {
-            Navigator.of(sheetContext).pop();
-            _confirmDelete(context, onDeleteAll);
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 12),
-          child: Text(
-            '${TideLocalizations.of(sheetContext).versionLabel} $appVersion',
-            style: Theme.of(sheetContext).textTheme.bodySmall,
-          ),
-        ),
-      ],
+        ],
+      ),
     ),
   ),
 );
@@ -159,29 +165,31 @@ Future<void> _showThemeSheet(
 ) => showModalBottomSheet<void>(
   context: context,
   builder: (sheetContext) => SafeArea(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListTile(title: Text(TideLocalizations.of(sheetContext).theme)),
-        for (final selection in TideThemeSelection.values)
-          ListTile(
-            title: Text(
-              themeLabel(selection, TideLocalizations.of(sheetContext)),
+    child: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(title: Text(TideLocalizations.of(sheetContext).theme)),
+          for (final selection in TideThemeSelection.values)
+            ListTile(
+              title: Text(
+                themeLabel(selection, TideLocalizations.of(sheetContext)),
+              ),
+              trailing: appearance.selection == selection
+                  ? FaIcon(
+                      TideIcons.check,
+                      color: Theme.of(sheetContext).iconTheme.color,
+                      size: 14,
+                    )
+                  : null,
+              selected: appearance.selection == selection,
+              onTap: () {
+                appearance.setSelection(selection);
+                Navigator.of(sheetContext).pop();
+              },
             ),
-            trailing: appearance.selection == selection
-                ? FaIcon(
-                    TideIcons.check,
-                    color: Theme.of(sheetContext).iconTheme.color,
-                    size: 14,
-                  )
-                : null,
-            selected: appearance.selection == selection,
-            onTap: () {
-              appearance.setSelection(selection);
-              Navigator.of(sheetContext).pop();
-            },
-          ),
-      ],
+        ],
+      ),
     ),
   ),
 );
@@ -194,27 +202,29 @@ Future<void> _showLanguageSheet(
   builder: (sheetContext) {
     final l10n = TideLocalizations.of(sheetContext);
     return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(title: Text(l10n.language)),
-          for (final selection in TideLanguageSelection.values)
-            ListTile(
-              title: Text(languageLabel(selection, l10n)),
-              trailing: appearance.language == selection
-                  ? FaIcon(
-                      TideIcons.check,
-                      color: Theme.of(sheetContext).iconTheme.color,
-                      size: 14,
-                    )
-                  : null,
-              selected: appearance.language == selection,
-              onTap: () {
-                appearance.setLanguage(selection);
-                Navigator.of(sheetContext).pop();
-              },
-            ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(title: Text(l10n.language)),
+            for (final selection in TideLanguageSelection.values)
+              ListTile(
+                title: Text(languageLabel(selection, l10n)),
+                trailing: appearance.language == selection
+                    ? FaIcon(
+                        TideIcons.check,
+                        color: Theme.of(sheetContext).iconTheme.color,
+                        size: 14,
+                      )
+                    : null,
+                selected: appearance.language == selection,
+                onTap: () {
+                  appearance.setLanguage(selection);
+                  Navigator.of(sheetContext).pop();
+                },
+              ),
+          ],
+        ),
       ),
     );
   },

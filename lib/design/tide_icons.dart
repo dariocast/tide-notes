@@ -8,6 +8,7 @@ abstract final class TideIcons {
   static const menu = FontAwesomeIcons.water;
   static const refresh = FontAwesomeIcons.arrowsRotate;
   static const theme = FontAwesomeIcons.palette;
+  static const language = FontAwesomeIcons.language;
   static const export = FontAwesomeIcons.arrowUpFromBracket;
   static const deleteAll = FontAwesomeIcons.trashCan;
   static const next = FontAwesomeIcons.angleRight;
