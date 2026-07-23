@@ -12,6 +12,8 @@ const themeLabels = {
   TideThemeSelection.abyss: 'Abyss',
 };
 
+const appVersionLabel = 'Versione 1.1.1';
+
 class TideSettingsButton extends StatelessWidget {
   const TideSettingsButton({
     super.key,
@@ -113,6 +115,13 @@ Future<void> _showSettingsSheet(
             Navigator.of(sheetContext).pop();
             _confirmDelete(context, onDeleteAll);
           },
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 12),
+          child: Text(
+            appVersionLabel,
+            style: Theme.of(sheetContext).textTheme.bodySmall,
+          ),
         ),
       ],
     ),
@@ -242,6 +251,10 @@ class _MacSettingsMenu extends StatelessWidget {
           'Elimina tutte le note',
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
+      ),
+      const PopupMenuItem<_MenuAction>(
+        enabled: false,
+        child: Text(appVersionLabel),
       ),
     ],
   );
