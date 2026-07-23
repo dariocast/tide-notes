@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
 import 'package:tide/design/appearance_controller.dart';
+import 'package:tide/design/tide_icons.dart';
 import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
@@ -14,12 +15,12 @@ import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/delete_all_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
 import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
-import 'package:tide/design/tide_depth_fade.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/tide_shell.dart';
@@ -46,6 +47,7 @@ void main() {
       editNote: EditNote(repository, now: () => timestamp),
       rescueNote: RescueNote(repository, now: () => timestamp),
       undoRescue: UndoRescue(repository),
+      deleteAllNotes: DeleteAllNotes(repository),
     );
     addTearDown(() async {
       await bloc.close();
@@ -90,12 +92,38 @@ void main() {
 
       expect(find.byKey(const ValueKey('composer')), findsOneWidget);
       expect(find.byKey(const ValueKey('note-list')), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+      await tester.tap(find.byIcon(TideIcons.insert.data));
       await tester.pump();
 
       expect(find.byType(NoteCard), findsNothing);
     },
   );
+
+  testWidgets('composer receives focus on startup', (tester) async {
+    await pumpPage(tester);
+    await tester.pump();
+
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('composer-input')))
+          .focusNode!
+          .hasFocus,
+      isTrue,
+    );
+  });
+
+  testWidgets('submit on enter sends the note when enabled', (tester) async {
+    final appearance = AppearanceController.inMemory(submitOnEnter: true);
+    final (_, repository) = await pumpPage(tester, appearance: appearance);
+    final composer = find.byKey(const ValueKey('composer-input'));
+
+    await tester.enterText(composer, 'quick note');
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+
+    expect(repository.created.single.content, 'quick note');
+    expect(tester.widget<TextField>(composer).controller!.text, isEmpty);
+  });
 
   testWidgets('button submission clears composer after successful append', (
     tester,
@@ -103,7 +131,7 @@ void main() {
     final (_, repository) = await pumpPage(tester);
     final composer = find.byKey(const ValueKey('composer-input'));
     await tester.enterText(composer, 'capture thought');
-    await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+    await tester.tap(find.byIcon(TideIcons.insert.data));
     await tester.pumpAndSettle();
 
     expect(repository.created.single.content, 'capture thought');
@@ -156,10 +184,36 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Tema'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Abyss'));
     await tester.pumpAndSettle();
 
     expect(appearance.selection, TideThemeSelection.abyss);
+  });
+
+  testWidgets('delete all asks for confirmation before dispatching', (
+    tester,
+  ) async {
+    final (_, repository) = await pumpPage(tester, notes: [makeNote('one')]);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina tutte le note'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Eliminare tutte le note?'), findsOneWidget);
+    await tester.tap(find.text('Annulla'));
+    await tester.pumpAndSettle();
+    expect(repository.deleteAllCalls, 0);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina tutte le note'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Elimina tutto'));
+    await tester.pumpAndSettle();
+    expect(repository.deleteAllCalls, 1);
   });
 
   testWidgets('macOS settings popover selects Abyss theme', (tester) async {
@@ -175,35 +229,11 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Appearance settings'));
       await tester.pumpAndSettle();
 
-      expect(
-        tester
-            .widget<CheckedPopupMenuItem<TideThemeSelection>>(
-              find.widgetWithText(
-                CheckedPopupMenuItem<TideThemeSelection>,
-                'System',
-              ),
-            )
-            .checked,
-        isTrue,
-      );
-      expect(
-        tester
-            .widget<CheckedPopupMenuItem<TideThemeSelection>>(
-              find.widgetWithText(
-                CheckedPopupMenuItem<TideThemeSelection>,
-                'Abyss',
-              ),
-            )
-            .checked,
-        isFalse,
-      );
+      expect(find.text('Tema'), findsOneWidget);
+      await tester.tap(find.text('Tema'));
+      await tester.pumpAndSettle();
 
-      // warnIfMissed is disabled: PopupMenuButton's route positions its
-      // overlay via a CustomSingleChildLayoutBox that the test binding's
-      // static hit-test probe doesn't account for, producing a false-positive
-      // warning even though the tap reliably reaches the menu item (as
-      // confirmed by the selection assertion below).
-      await tester.tap(find.text('Abyss'), warnIfMissed: false);
+      await tester.tap(find.text('Abyss'));
       await tester.pumpAndSettle();
 
       expect(appearance.selection, TideThemeSelection.abyss);
@@ -345,7 +375,7 @@ void main() {
       find.byKey(const ValueKey('note-row')),
     );
     final noteDecoration = noteRow.decoration as BoxDecoration;
-    expect((noteDecoration.border as Border?)?.left, BorderSide.none);
+    expect(noteDecoration.border, isNull);
     expect(noteDecoration.borderRadius, isNull);
 
     final noteContext = tester.element(find.byKey(const ValueKey('note-row')));
@@ -421,85 +451,13 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     semantics.dispose();
   });
-
-  testWidgets('note stream sinks toward the viewport floor by default', (
-    tester,
-  ) async {
-    await pumpPage(tester, notes: [makeNote('one'), makeNote('two')]);
-    await tester.pump();
-
-    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
-  });
-
-  testWidgets('starting inline edit bypasses the depth fade', (tester) async {
-    await pumpPage(tester, notes: [makeNote('one'), makeNote('two')]);
-    await tester.pump();
-    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
-
-    await tester.tap(find.byType(NoteCard).first);
-    await tester.pump();
-
-    expect(find.byKey(const ValueKey('tide-depth-mask')), findsNothing);
-
-    await tester.tap(find.byKey(const ValueKey('composer-input')));
-    await tester.pump(const Duration(milliseconds: 450));
-
-    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
-  });
-
-  testWidgets('scrolling a note toward the top of the viewport monotonically '
-      'increases its opacity-at-fraction (gradient direction itself is '
-      'covered by the unit test in tide_depth_fade_test.dart)', (tester) async {
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(400, 700);
-
-    final notes = List.generate(40, (index) => makeNote('$index'));
-    await pumpPage(tester, notes: notes);
-    await tester.pump();
-
-    final noteList = find.byKey(const ValueKey('note-list'));
-    final viewportHeight = tester.getSize(noteList).height;
-    final listTop = tester.getTopLeft(noteList).dy;
-    final noteHeight = tester
-        .getSize(find.byKey(const ValueKey('0')).first)
-        .height;
-    final target = find.byKey(const ValueKey('20')).first;
-
-    double fractionOf(Finder finder) =>
-        (tester.getTopLeft(finder).dy - listTop) / viewportHeight;
-
-    // Bring note 20 into the lower band of the viewport first.
-    await tester.drag(
-      noteList,
-      Offset(0, -(20 * noteHeight - viewportHeight * 0.8)),
-    );
-    await tester.pump();
-    final lowerFraction = fractionOf(target);
-
-    // Scroll further so the same note rises toward the top of the
-    // viewport.
-    await tester.drag(noteList, Offset(0, -(noteHeight * 3)));
-    await tester.pump();
-    final risenFraction = fractionOf(target);
-
-    expect(risenFraction, lessThan(lowerFraction));
-    const floor = 0.8;
-    expect(
-      TideDepthModel.opacityAt(risenFraction, floor: floor),
-      greaterThan(TideDepthModel.opacityAt(lowerFraction, floor: floor)),
-    );
-    expect(find.byKey(const ValueKey('tide-depth-mask')), findsOneWidget);
-  });
 }
 
 final class PageRepository implements NoteRepository {
   final StreamController<List<Note>> controller =
       StreamController<List<Note>>.broadcast();
   final List<Note> created = [];
+  int deleteAllCalls = 0;
   final List<String> updatedContents = [];
 
   @override
@@ -510,6 +468,9 @@ final class PageRepository implements NoteRepository {
     created.add(note);
     controller.add([...created]);
   }
+
+  @override
+  Future<void> deleteAll() async => deleteAllCalls++;
 
   @override
   Future<void> updateContent(

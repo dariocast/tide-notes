@@ -96,6 +96,9 @@ final class FakeNoteRepository implements NoteRepository {
   }
 
   @override
+  Future<void> deleteAll() async {}
+
+  @override
   Future<void> updateContent(
     String id,
     String content,

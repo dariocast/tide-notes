@@ -6,6 +6,8 @@ abstract interface class NoteRepository {
 
   Future<void> createNote(Note note);
 
+  Future<void> deleteAll();
+
   Future<void> updateContent(String id, String content, DateTime updatedAt);
 
   Future<RescueReceipt?> rescue(String id, DateTime surfacedAt);

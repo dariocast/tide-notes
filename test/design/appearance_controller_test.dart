@@ -26,4 +26,15 @@ void main() {
       TideThemeSelection.system,
     );
   });
+
+  test('submit on enter defaults off and persists when enabled', () async {
+    SharedPreferences.setMockInitialValues({});
+    final controller = await AppearanceController.load();
+
+    expect(controller.submitOnEnter, isFalse);
+    await controller.setSubmitOnEnter(true);
+
+    final restored = await AppearanceController.load();
+    expect(restored.submitOnEnter, isTrue);
+  });
 }

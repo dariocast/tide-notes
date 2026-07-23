@@ -31,6 +31,9 @@ final class LocalNoteRepository implements NoteRepository {
       .insert(NoteModel.fromEntity(note).toCompanion());
 
   @override
+  Future<void> deleteAll() => _database.delete(_database.noteRecords).go();
+
+  @override
   Future<void> updateContent(
     String id,
     String content,

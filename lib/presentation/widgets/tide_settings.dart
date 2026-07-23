@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../design/appearance_controller.dart';
+import '../../design/tide_icons.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-/// User-facing labels for each Tide theme selection. Never expose
-/// implementation names such as `ThemeMode.dark` in the UI.
 const themeLabels = {
   TideThemeSelection.system: 'System',
   TideThemeSelection.foam: 'Foam',
@@ -12,11 +12,15 @@ const themeLabels = {
   TideThemeSelection.abyss: 'Abyss',
 };
 
-/// Platform-adaptive appearance control: a modal bottom sheet on touch
-/// platforms, a popover-style menu on macOS. Reads and updates the
-/// [AppearanceScope] controller in context.
 class TideSettingsButton extends StatelessWidget {
-  const TideSettingsButton({super.key});
+  const TideSettingsButton({
+    super.key,
+    required this.onExport,
+    required this.onDeleteAll,
+  });
+
+  final VoidCallback onExport;
+  final VoidCallback onDeleteAll;
 
   @override
   Widget build(BuildContext context) {
@@ -27,17 +31,95 @@ class TideSettingsButton extends StatelessWidget {
       label: 'Appearance settings',
       button: true,
       child: defaultTargetPlatform == TargetPlatform.macOS
-          ? _MacSettingsMenu(appearance: appearance)
+          ? _MacSettingsMenu(
+              appearance: appearance,
+              onExport: onExport,
+              onDeleteAll: onDeleteAll,
+            )
           : IconButton(
-              tooltip: 'Appearance settings',
-              icon: const Icon(Icons.tune_rounded),
-              onPressed: () => _showSettingsSheet(context, appearance),
+              tooltip: 'Menu',
+              icon: const FaIcon(TideIcons.menu, size: 20),
+              onPressed: () => _showSettingsSheet(
+                context,
+                appearance,
+                onExport,
+                onDeleteAll,
+              ),
             ),
     );
   }
 }
 
+enum _MenuAction { theme, submitOnEnter, export, deleteAll }
+
 Future<void> _showSettingsSheet(
+  BuildContext context,
+  AppearanceController appearance,
+  VoidCallback onExport,
+  VoidCallback onDeleteAll,
+) => showModalBottomSheet<void>(
+  context: context,
+  builder: (sheetContext) => SafeArea(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: FaIcon(
+            TideIcons.theme,
+            color: Theme.of(sheetContext).iconTheme.color,
+            size: 18,
+          ),
+          title: const Text('Tema'),
+          trailing: FaIcon(
+            TideIcons.next,
+            color: Theme.of(sheetContext).iconTheme.color,
+            size: 14,
+          ),
+          onTap: () => _showThemeSheet(sheetContext, appearance),
+        ),
+        ListTile(
+          leading: FaIcon(
+            TideIcons.export,
+            color: Theme.of(sheetContext).iconTheme.color,
+            size: 18,
+          ),
+          title: const Text('Esporta note'),
+          onTap: () {
+            Navigator.of(sheetContext).pop();
+            onExport();
+          },
+        ),
+        SwitchListTile(
+          secondary: FaIcon(
+            TideIcons.insert,
+            color: Theme.of(sheetContext).iconTheme.color,
+            size: 18,
+          ),
+          title: const Text('Invio rapido'),
+          value: appearance.submitOnEnter,
+          onChanged: appearance.setSubmitOnEnter,
+        ),
+        ListTile(
+          leading: FaIcon(
+            TideIcons.deleteAll,
+            color: Theme.of(sheetContext).colorScheme.error,
+            size: 18,
+          ),
+          title: Text(
+            'Elimina tutte le note',
+            style: TextStyle(color: Theme.of(sheetContext).colorScheme.error),
+          ),
+          onTap: () {
+            Navigator.of(sheetContext).pop();
+            _confirmDelete(context, onDeleteAll);
+          },
+        ),
+      ],
+    ),
+  ),
+);
+
+Future<void> _showThemeSheet(
   BuildContext context,
   AppearanceController appearance,
 ) => showModalBottomSheet<void>(
@@ -46,11 +128,16 @@ Future<void> _showSettingsSheet(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        const ListTile(title: Text('Tema')),
         for (final selection in TideThemeSelection.values)
           ListTile(
             title: Text(themeLabels[selection]!),
             trailing: appearance.selection == selection
-                ? const Icon(Icons.check_rounded)
+                ? FaIcon(
+                    TideIcons.check,
+                    color: Theme.of(sheetContext).iconTheme.color,
+                    size: 14,
+                  )
                 : null,
             selected: appearance.selection == selection,
             onTap: () {
@@ -63,23 +150,99 @@ Future<void> _showSettingsSheet(
   ),
 );
 
+Future<void> _confirmDelete(
+  BuildContext context,
+  VoidCallback onDeleteAll,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Eliminare tutte le note?'),
+      content: const Text(
+        'Questa azione eliminerà definitivamente tutte le note.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('Annulla'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('Elimina tutto'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) onDeleteAll();
+}
+
 class _MacSettingsMenu extends StatelessWidget {
-  const _MacSettingsMenu({required this.appearance});
+  const _MacSettingsMenu({
+    required this.appearance,
+    required this.onExport,
+    required this.onDeleteAll,
+  });
 
   final AppearanceController appearance;
+  final VoidCallback onExport;
+  final VoidCallback onDeleteAll;
 
   @override
-  Widget build(BuildContext context) => PopupMenuButton<TideThemeSelection>(
-    tooltip: 'Appearance settings',
-    icon: const Icon(Icons.tune_rounded),
-    onSelected: appearance.setSelection,
+  Widget build(BuildContext context) => PopupMenuButton<_MenuAction>(
+    tooltip: 'Menu',
+    icon: const FaIcon(TideIcons.menu, size: 20),
+    onSelected: (action) {
+      switch (action) {
+        case _MenuAction.theme:
+          _showThemeSheet(context, appearance);
+        case _MenuAction.submitOnEnter:
+          appearance.setSubmitOnEnter(!appearance.submitOnEnter);
+        case _MenuAction.export:
+          onExport();
+        case _MenuAction.deleteAll:
+          _confirmDelete(context, onDeleteAll);
+      }
+    },
     itemBuilder: (context) => [
-      for (final selection in TideThemeSelection.values)
-        CheckedPopupMenuItem(
-          value: selection,
-          checked: appearance.selection == selection,
-          child: Text(themeLabels[selection]!),
+      PopupMenuItem(
+        value: _MenuAction.theme,
+        child: Row(
+          children: [
+            Expanded(child: Text('Tema')),
+            FaIcon(
+              TideIcons.next,
+              color: Theme.of(context).iconTheme.color,
+              size: 14,
+            ),
+          ],
         ),
+      ),
+      const PopupMenuDivider(),
+      PopupMenuItem(
+        value: _MenuAction.submitOnEnter,
+        child: Row(
+          children: [
+            const Expanded(child: Text('Invio rapido')),
+            if (appearance.submitOnEnter)
+              FaIcon(
+                TideIcons.check,
+                color: Theme.of(context).iconTheme.color,
+                size: 14,
+              ),
+          ],
+        ),
+      ),
+      const PopupMenuItem(
+        value: _MenuAction.export,
+        child: Text('Esporta note'),
+      ),
+      PopupMenuItem(
+        value: _MenuAction.deleteAll,
+        child: Text(
+          'Elimina tutte le note',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      ),
     ],
   );
 }

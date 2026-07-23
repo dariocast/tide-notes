@@ -10,6 +10,7 @@ import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/delete_all_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
@@ -49,6 +50,7 @@ void main() {
         editNote: EditNote(repository, now: () => timestamp),
         rescueNote: RescueNote(repository, now: () => timestamp),
         undoRescue: UndoRescue(repository),
+        deleteAllNotes: DeleteAllNotes(repository),
       );
       addTearDown(bloc.close);
 
@@ -92,6 +94,9 @@ final class _ProfileRepository implements NoteRepository {
 
   @override
   Future<void> createNote(Note note) async {}
+
+  @override
+  Future<void> deleteAll() async {}
 
   @override
   Future<void> updateContent(

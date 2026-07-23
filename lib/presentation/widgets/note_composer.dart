@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../design/tide_icons.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SubmitIntent extends Intent {
   const SubmitIntent();
@@ -13,10 +15,12 @@ class NoteComposer extends StatefulWidget {
     super.key,
     required this.onSubmit,
     required this.appendCompleted,
+    this.submitOnEnter = false,
   });
 
   final ValueChanged<String> onSubmit;
   final int appendCompleted;
+  final bool submitOnEnter;
 
   @override
   State<NoteComposer> createState() => _NoteComposerState();
@@ -34,6 +38,9 @@ class _NoteComposerState extends State<NoteComposer> {
     _controller = TextEditingController();
     _focusNode = FocusNode();
     _lastAppendCompleted = widget.appendCompleted;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   @override
@@ -44,7 +51,7 @@ class _NoteComposerState extends State<NoteComposer> {
     if (_pendingContent != null && _controller.text == _pendingContent) {
       _controller.clear();
       _pendingContent = null;
-      _focusNode.requestFocus();
+      if (widget.submitOnEnter) _focusNode.requestFocus();
     }
   }
 
@@ -72,11 +79,14 @@ class _NoteComposerState extends State<NoteComposer> {
         compact ? GSpace.s4 : GSpace.s6,
         GSpace.s2,
         compact ? GSpace.s4 : GSpace.s6,
-        GSpace.s3,
+        GSpace.s2,
       ),
       child: Shortcuts(
-        shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.enter, meta: true): SubmitIntent(),
+        shortcuts: {
+          if (widget.submitOnEnter)
+            const SingleActivator(LogicalKeyboardKey.enter): SubmitIntent(),
+          const SingleActivator(LogicalKeyboardKey.enter, meta: true):
+              SubmitIntent(),
         },
         child: Actions(
           actions: {
@@ -106,9 +116,16 @@ class _NoteComposerState extends State<NoteComposer> {
                         key: const ValueKey('composer-input'),
                         controller: _controller,
                         focusNode: _focusNode,
-                        minLines: 2,
-                        maxLines: 5,
+                        minLines: 1,
+                        maxLines: 4,
                         keyboardType: TextInputType.multiline,
+                        textInputAction: widget.submitOnEnter
+                            ? TextInputAction.done
+                            : TextInputAction.newline,
+                        onSubmitted: widget.submitOnEnter
+                            ? (_) => _submit()
+                            : null,
+                        onTapOutside: (_) => _focusNode.unfocus(),
                         style: Theme.of(context).textTheme.bodyMedium,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
@@ -117,30 +134,19 @@ class _NoteComposerState extends State<NoteComposer> {
                           hintText: 'Capture a thought…',
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: GSpace.s4,
-                            vertical: GSpace.s3,
+                            vertical: GSpace.s2,
                           ),
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(GSpace.s2),
-                      child: Semantics(
-                        label: 'Save note',
-                        button: true,
-                        onTap: _submit,
-                        child: ExcludeSemantics(
-                          child: SizedBox.square(
-                            dimension: GLayout.minTouchTarget,
-                            child: FilledButton(
-                              onPressed: _submit,
-                              style: FilledButton.styleFrom(
-                                shape: const CircleBorder(),
-                                padding: EdgeInsets.zero,
-                              ),
-                              child: const Icon(Icons.arrow_upward_rounded),
-                            ),
-                          ),
-                        ),
+                    Semantics(
+                      label: 'Save note',
+                      button: true,
+                      onTap: _submit,
+                      child: IconButton(
+                        onPressed: _submit,
+                        tooltip: 'Save note',
+                        icon: const FaIcon(TideIcons.insert, size: 18),
                       ),
                     ),
                   ],

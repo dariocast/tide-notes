@@ -38,6 +38,15 @@ void main() {
     expect(actual.surfacedAt, older.surfacedAt);
   });
 
+  test('deleteAll removes every note', () async {
+    await repository.createNote(older);
+    await repository.createNote(newer);
+
+    await repository.deleteAll();
+
+    expect(await repository.watchNotes().first, isEmpty);
+  });
+
   test('rescue is atomic and returns previous values', () async {
     await repository.createNote(older);
     final later = base.add(const Duration(hours: 1));

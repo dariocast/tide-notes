@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../design/tide_icons.dart';
 import '../../core/utils/note_metadata_formatter.dart';
 import '../../domain/entities/note.dart';
 import 'prefix_text.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void defaultTideHaptic() {
   if (defaultTargetPlatform == TargetPlatform.macOS) return;
@@ -23,6 +25,7 @@ class NoteCard extends StatefulWidget {
     required this.index,
     required this.onChanged,
     required this.onRescue,
+    this.onUndo,
     this.busy = false,
     this.rescueEnabled = true,
     this.haptic = defaultTideHaptic,
@@ -36,6 +39,7 @@ class NoteCard extends StatefulWidget {
   final bool rescueEnabled;
   final ValueChanged<String> onChanged;
   final VoidCallback onRescue;
+  final VoidCallback? onUndo;
   final VoidCallback haptic;
   final DateTime Function() now;
   final ValueChanged<bool>? onEditingChanged;
@@ -84,7 +88,12 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   void dispose() {
-    if (_editing) widget.onEditingChanged?.call(false);
+    if (_editing) {
+      final onEditingChanged = widget.onEditingChanged;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onEditingChanged?.call(false);
+      });
+    }
     _focusNode
       ..removeListener(_handleFocusChange)
       ..dispose();
@@ -114,50 +123,69 @@ class _NoteCardState extends State<NoteCard> {
         color: _hovered
             ? g.accentSubtle.withValues(alpha: GDecor.hoverAlpha)
             : null,
-        border: Border(
-          bottom: BorderSide(color: g.lineSubtle, width: GDecor.hairline),
-        ),
       ),
       padding: EdgeInsets.fromLTRB(
         compact ? GSpace.s4 : GSpace.s6,
-        GSpace.s4,
+        GSpace.s2,
         compact ? GSpace.s4 : GSpace.s6,
-        GSpace.s4,
+        GSpace.s2,
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_editing)
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              maxLines: null,
-              textInputAction: TextInputAction.newline,
-              decoration: const InputDecoration(
-                contentPadding: EdgeInsets.zero,
-                isDense: true,
-                labelText: 'Edit note',
-              ),
-              onChanged: widget.onChanged,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_editing)
+                  TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    maxLines: null,
+                    textInputAction: TextInputAction.newline,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                      labelText: 'Edit note',
+                    ),
+                    onTapOutside: (_) => _focusNode.unfocus(),
+                    onChanged: widget.onChanged,
+                  )
+                else
+                  PrefixText(content: widget.note.content, index: widget.index),
+                const SizedBox(height: GSpace.s1),
+                Text(metadata, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          if (!_editing && widget.onUndo != null)
+            IconButton(
+              onPressed: widget.busy ? null : widget.onUndo,
+              tooltip: 'Undo rescue',
+              icon: const FaIcon(TideIcons.undo, size: 18),
             )
-          else
-            PrefixText(content: widget.note.content, index: widget.index),
-          const SizedBox(height: GSpace.s2),
-          Text(metadata, style: Theme.of(context).textTheme.bodySmall),
+          else if (!_editing && widget.rescueEnabled)
+            IconButton(
+              onPressed: widget.busy ? null : widget.onRescue,
+              tooltip: 'Rescue note',
+              icon: const FaIcon(TideIcons.surface, size: 18),
+            ),
         ],
       ),
     );
 
-    final interactive = FocusRing(
-      child: MouseRegion(
-        cursor: widget.busy
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
-      ),
+    final rowInteraction = MouseRegion(
+      cursor: widget.busy ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
     );
+    final interactive = _editing
+        ? rowInteraction
+        : FocusRing(child: rowInteraction);
 
     if (widget.busy || !widget.rescueEnabled) {
       return KeyedSubtree(key: ValueKey(widget.note.id), child: interactive);
@@ -179,11 +207,7 @@ class _NoteCardState extends State<NoteCard> {
             padding: EdgeInsets.only(left: compact ? GSpace.s4 : GSpace.s6),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Icon(
-                Icons.arrow_upward_rounded,
-                color: g.rescue,
-                size: 24,
-              ),
+              child: FaIcon(TideIcons.surface, color: g.rescue, size: 20),
             ),
           ),
         ),

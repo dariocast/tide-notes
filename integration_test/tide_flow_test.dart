@@ -11,6 +11,7 @@ import 'package:tide/data/repositories/local_note_repository.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/delete_all_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
@@ -111,4 +112,5 @@ TideBloc _createBloc(NoteRepository repository) => TideBloc(
   editNote: EditNote(repository, now: DateTime.now),
   rescueNote: RescueNote(repository, now: DateTime.now),
   undoRescue: UndoRescue(repository),
+  deleteAllNotes: DeleteAllNotes(repository),
 );

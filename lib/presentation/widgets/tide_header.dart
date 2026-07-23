@@ -5,10 +5,18 @@ import '../../design/design_tokens.dart';
 import 'tide_settings.dart';
 
 class TideHeader extends StatelessWidget {
-  const TideHeader({super.key, required this.noteCount, required this.now});
+  const TideHeader({
+    super.key,
+    required this.noteCount,
+    required this.now,
+    required this.onExport,
+    required this.onDeleteAll,
+  });
 
   final int noteCount;
   final DateTime now;
+  final VoidCallback onExport;
+  final VoidCallback onDeleteAll;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +50,10 @@ class TideHeader extends StatelessWidget {
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const TideSettingsButton(),
+                TideSettingsButton(
+                  onExport: onExport,
+                  onDeleteAll: onDeleteAll,
+                ),
                 Expanded(
                   child: Column(
                     children: [
@@ -68,7 +79,10 @@ class TideHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                const TideSettingsButton(),
+                TideSettingsButton(
+                  onExport: onExport,
+                  onDeleteAll: onDeleteAll,
+                ),
               ],
             ),
     );

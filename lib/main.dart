@@ -9,6 +9,7 @@ import 'data/repositories/local_note_repository.dart';
 import 'domain/repositories/note_repository.dart';
 import 'domain/usecases/append_note.dart';
 import 'domain/usecases/edit_note.dart';
+import 'domain/usecases/delete_all_notes.dart';
 import 'domain/usecases/rescue_note.dart';
 import 'domain/usecases/undo_rescue.dart';
 import 'domain/usecases/watch_notes.dart';
@@ -51,6 +52,7 @@ class _TideBootstrapState extends State<TideBootstrap> {
             editNote: EditNote(repository, now: DateTime.now),
             rescueNote: RescueNote(repository, now: DateTime.now),
             undoRescue: UndoRescue(repository),
+            deleteAllNotes: DeleteAllNotes(repository),
           )..add(const TideStarted()),
           child: TideApp(home: const TidePage(), appearance: widget.appearance),
         ),

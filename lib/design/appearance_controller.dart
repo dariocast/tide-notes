@@ -8,23 +8,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum TideThemeSelection { system, foam, deepTide, abyss }
 
 class AppearanceController extends ChangeNotifier {
-  AppearanceController._(this._preferences, this._selection);
+  AppearanceController._(
+    this._preferences,
+    this._selection,
+    this._submitOnEnter,
+  );
 
   static const _themeKey = 'tide_theme';
+  static const _submitOnEnterKey = 'tide_submit_on_enter';
   final SharedPreferences? _preferences;
   TideThemeSelection _selection;
+  bool _submitOnEnter;
 
   TideThemeSelection get selection => _selection;
+  bool get submitOnEnter => _submitOnEnter;
 
   static Future<AppearanceController> load() async {
     try {
       final preferences = await SharedPreferences.getInstance();
       final stored = preferences.getString(_themeKey);
+      final submitOnEnter = preferences.getBool(_submitOnEnterKey) ?? false;
       final selection = TideThemeSelection.values.firstWhere(
         (value) => value.name == stored,
         orElse: () => TideThemeSelection.system,
       );
-      return AppearanceController._(preferences, selection);
+      return AppearanceController._(preferences, selection, submitOnEnter);
     } catch (_) {
       return AppearanceController.inMemory();
     }
@@ -32,7 +40,8 @@ class AppearanceController extends ChangeNotifier {
 
   factory AppearanceController.inMemory({
     TideThemeSelection selection = TideThemeSelection.system,
-  }) => AppearanceController._(null, selection);
+    bool submitOnEnter = false,
+  }) => AppearanceController._(null, selection, submitOnEnter);
 
   Future<void> setSelection(TideThemeSelection value) async {
     if (_selection == value) return;
@@ -40,6 +49,15 @@ class AppearanceController extends ChangeNotifier {
     notifyListeners();
     try {
       await _preferences?.setString(_themeKey, value.name);
+    } catch (_) {}
+  }
+
+  Future<void> setSubmitOnEnter(bool value) async {
+    if (_submitOnEnter == value) return;
+    _submitOnEnter = value;
+    notifyListeners();
+    try {
+      await _preferences?.setBool(_submitOnEnterKey, value);
     } catch (_) {}
   }
 }

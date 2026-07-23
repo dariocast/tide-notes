@@ -83,6 +83,7 @@ abstract final class TideAppTheme {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
+      iconTheme: IconThemeData(color: colors.accentMuted),
       scaffoldBackgroundColor: colors.bgMid,
       extensions: [colors],
       splashFactory: NoSplash.splashFactory,
@@ -154,7 +155,7 @@ abstract final class TideAppTheme {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: WidgetStatePropertyAll(colors.ink),
+          foregroundColor: WidgetStatePropertyAll(colors.accentMuted),
           minimumSize: const WidgetStatePropertyAll(
             Size.square(GLayout.minTouchTarget),
           ),

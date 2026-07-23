@@ -73,7 +73,6 @@ class _TideShellState extends State<TideShell> {
             _region(_headerKey, widget.header),
             _region(_composerKey, widget.composer),
             _region(_undoActionKey, widget.undoAction),
-            const Hairline(indent: GSpace.s4),
             Expanded(child: _region(_streamKey, widget.stream)),
           ],
         ),

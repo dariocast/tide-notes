@@ -21,7 +21,6 @@ abstract final class GFoam {
   static const dangerSoft = Color(0xFFF4E1E3);
   static const lineSubtle = Color(0x1F102F3A);
   static const lineStrong = Color(0x52102F3A);
-  static const depthFloor = 0.80;
 }
 
 abstract final class GDeepTide {
@@ -44,7 +43,6 @@ abstract final class GDeepTide {
   static const dangerSoft = Color(0xFF3A2025);
   static const lineSubtle = Color(0x24E8F4F5);
   static const lineStrong = Color(0x5CE8F4F5);
-  static const depthFloor = 0.72;
 }
 
 abstract final class GAbyss {
@@ -67,7 +65,6 @@ abstract final class GAbyss {
   static const dangerSoft = Color(0xFF35191E);
   static const lineSubtle = Color(0x2AEDF8F8);
   static const lineStrong = Color(0x66EDF8F8);
-  static const depthFloor = 0.70;
 }
 
 abstract final class GSpace {
@@ -142,7 +139,6 @@ class TideColors extends ThemeExtension<TideColors> {
     required this.lineSubtle,
     required this.lineStrong,
     required this.isOled,
-    required this.depthFloor,
   });
   final Color bgTop,
       bgMid,
@@ -164,7 +160,6 @@ class TideColors extends ThemeExtension<TideColors> {
       lineSubtle,
       lineStrong;
   final bool isOled;
-  final double depthFloor;
 
   static const foam = TideColors(
     bgTop: GFoam.bgTop,
@@ -187,7 +182,6 @@ class TideColors extends ThemeExtension<TideColors> {
     lineSubtle: GFoam.lineSubtle,
     lineStrong: GFoam.lineStrong,
     isOled: false,
-    depthFloor: GFoam.depthFloor,
   );
   static const deepTide = TideColors(
     bgTop: GDeepTide.bgTop,
@@ -210,7 +204,6 @@ class TideColors extends ThemeExtension<TideColors> {
     lineSubtle: GDeepTide.lineSubtle,
     lineStrong: GDeepTide.lineStrong,
     isOled: false,
-    depthFloor: GDeepTide.depthFloor,
   );
   static const abyss = TideColors(
     bgTop: GAbyss.bgTop,
@@ -233,7 +226,6 @@ class TideColors extends ThemeExtension<TideColors> {
     lineSubtle: GAbyss.lineSubtle,
     lineStrong: GAbyss.lineStrong,
     isOled: true,
-    depthFloor: GAbyss.depthFloor,
   );
 
   @override
@@ -264,7 +256,6 @@ class TideColors extends ThemeExtension<TideColors> {
       lineSubtle: l(lineSubtle, other.lineSubtle),
       lineStrong: l(lineStrong, other.lineStrong),
       isOled: t < 0.5 ? isOled : other.isOled,
-      depthFloor: depthFloor + (other.depthFloor - depthFloor) * t,
     );
   }
 }

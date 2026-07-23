@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../design/design_helpers.dart';
-import '../../design/design_tokens.dart';
+import '../../design/appearance_controller.dart';
+import '../../design/tide_icons.dart';
 import '../blocs/tide_bloc.dart';
 import '../blocs/tide_event.dart';
 import '../blocs/tide_state.dart';
@@ -11,6 +12,7 @@ import '../widgets/note_composer.dart';
 import '../widgets/note_stream.dart';
 import '../widgets/tide_header.dart';
 import '../widgets/tide_shell.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 DateTime defaultTideNow() => DateTime.now();
 
@@ -46,7 +48,7 @@ class TidePage extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () =>
                     context.read<TideBloc>().add(const TideStarted()),
-                icon: const Icon(Icons.refresh),
+                icon: const FaIcon(TideIcons.refresh),
                 label: const Text('Retry'),
               ),
             ),
@@ -58,37 +60,32 @@ class TidePage extends StatelessWidget {
         body: PaperBackground(
           child: SafeArea(
             child: TideShell(
-              header: TideHeader(noteCount: state.notes.length, now: now()),
+              header: TideHeader(
+                noteCount: state.notes.length,
+                now: now(),
+                onExport: () => context.read<TideBloc>().add(
+                  NotesExportRequested(state.notes),
+                ),
+                onDeleteAll: () => context.read<TideBloc>().add(
+                  const NotesDeleteAllRequested(),
+                ),
+              ),
               composer: NoteComposer(
                 appendCompleted: state.appendCompleted,
+                submitOnEnter:
+                    AppearanceScope.maybeOf(context)?.submitOnEnter ?? false,
                 onSubmit: (content) =>
                     context.read<TideBloc>().add(NoteAppendRequested(content)),
               ),
-              undoAction: state.rescueReceipt == null
-                  ? const SizedBox(height: GSpace.s2)
-                  : Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          GSpace.s4,
-                          0,
-                          GSpace.s4,
-                          GSpace.s2,
-                        ),
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.read<TideBloc>().add(
-                            const RescueUndoRequested(),
-                          ),
-                          icon: const Icon(Icons.undo_rounded, size: 18),
-                          label: const Text('Undo rescue'),
-                        ),
-                      ),
-                    ),
+              undoAction: const SizedBox.shrink(),
               stream: NoteStream(
                 notes: state.notes,
                 busyNoteIds: state.busyNoteIds,
                 haptic: haptic,
                 now: now,
+                undoNoteId: state.rescueReceipt?.noteId,
+                onUndo: () =>
+                    context.read<TideBloc>().add(const RescueUndoRequested()),
                 onChanged: (edit) => context.read<TideBloc>().add(
                   NoteEditRequested(edit.id, edit.content),
                 ),

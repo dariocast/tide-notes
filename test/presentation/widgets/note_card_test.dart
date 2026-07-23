@@ -44,7 +44,7 @@ void main() {
     expect(rescueCount, 0);
   });
 
-  testWidgets('row is flat with metadata and a hairline separator', (
+  testWidgets('row is flat with metadata and no visible separator', (
     tester,
   ) async {
     final rescued = note.copyWith(rescueCount: 2);
@@ -69,8 +69,7 @@ void main() {
     final decoration = row.decoration as BoxDecoration;
     expect(decoration.color, isNull);
     expect(decoration.borderRadius, isNull);
-    expect((decoration.border as Border?)?.left, BorderSide.none);
-    expect(decoration.border?.bottom.width, 1);
+    expect(decoration.border, isNull);
     expect(find.textContaining('2h ago'), findsOneWidget);
     expect(find.textContaining('Jul 18'), findsOneWidget);
     expect(find.textContaining('↑ 2'), findsOneWidget);

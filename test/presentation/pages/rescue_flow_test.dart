@@ -6,12 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tide/app.dart';
 import 'package:tide/design/design_helpers.dart';
 import 'package:tide/design/design_tokens.dart';
+import 'package:tide/design/tide_icons.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/delete_all_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
@@ -47,6 +49,7 @@ void main() {
       editNote: EditNote(repository, now: () => timestamp),
       rescueNote: RescueNote(repository, now: () => timestamp),
       undoRescue: UndoRescue(repository),
+      deleteAllNotes: DeleteAllNotes(repository),
     );
     addTearDown(() async {
       await bloc.close();
@@ -109,9 +112,9 @@ void main() {
 
     await tester.drag(find.byType(Dismissible), const Offset(400, 0));
     await tester.pumpAndSettle();
-    expect(find.text('Undo rescue'), findsOneWidget);
+    expect(find.byIcon(TideIcons.undo.data), findsOneWidget);
 
-    await tester.tap(find.text('Undo rescue'));
+    await tester.tap(find.byIcon(TideIcons.undo.data));
     await tester.pumpAndSettle();
     expect(repository.undoCalls, 1);
   });
@@ -161,6 +164,9 @@ final class RescueRepository implements NoteRepository {
 
   @override
   Future<void> createNote(Note note) async {}
+
+  @override
+  Future<void> deleteAll() async {}
 
   @override
   Future<void> updateContent(
