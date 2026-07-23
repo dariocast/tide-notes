@@ -56,13 +56,13 @@ class _TideShellState extends State<TideShell> {
         constraints.maxWidth,
       );
       return switch (layout) {
-        TideShellLayout.vertical => _buildVertical(),
+        TideShellLayout.vertical => _buildVertical(constraints),
         TideShellLayout.desktopSplit => _buildDesktop(context),
       };
     },
   );
 
-  Widget _buildVertical() => GSizeClassScope(
+  Widget _buildVertical(BoxConstraints constraints) => GSizeClassScope(
     sizeClass: GSizeClass.compact,
     child: SizedBox(
       width: double.infinity,
@@ -70,7 +70,11 @@ class _TideShellState extends State<TideShell> {
         child: Column(
           key: const ValueKey('vertical-layout'),
           children: [
-            _region(_headerKey, widget.header),
+            // With the keyboard open in landscape there may be only a small
+            // strip of vertical space left. Keep the composer usable instead
+            // of letting the fixed-height header overflow the column.
+            if (constraints.maxHeight >= 240)
+              _region(_headerKey, widget.header),
             _region(_composerKey, widget.composer),
             _region(_undoActionKey, widget.undoAction),
             Expanded(child: _region(_streamKey, widget.stream)),

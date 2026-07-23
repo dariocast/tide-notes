@@ -212,5 +212,34 @@ void main() {
       );
       expect(tester.widget<TextField>(input).focusNode!.hasFocus, isTrue);
     });
+
+    testWidgets('compact height keeps the composer and stream visible', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(800, 180);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: TideAppTheme.foam,
+          home: Scaffold(
+            body: TideShell(
+              platform: TargetPlatform.android,
+              header: const Text('header'),
+              composer: const Text('composer'),
+              undoAction: const SizedBox.shrink(),
+              stream: const Text('stream'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('header'), findsNothing);
+      expect(find.text('composer'), findsOneWidget);
+      expect(find.text('stream'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }
