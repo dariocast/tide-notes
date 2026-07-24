@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:tide/design/design_helpers.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/l10n/tide_localizations.dart';
@@ -37,6 +38,27 @@ void main() {
     expect(find.text('Cerca nelle note…'), findsOneWidget);
     expect(find.byTooltip('Cancella testo di ricerca'), findsOneWidget);
     expect(find.text('Cancella'), findsOneWidget);
+  });
+
+  testWidgets('vertically centers search text with its leading icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const _SearchHarness());
+
+    final header = find.byKey(const ValueKey('search-header'));
+    final icon = find.descendant(
+      of: header,
+      matching: find.byWidgetPredicate((widget) => widget is FaIcon),
+    );
+    final field = find.descendant(
+      of: header,
+      matching: find.byType(EditableText),
+    );
+
+    expect(
+      (tester.getCenter(icon).dy - tester.getCenter(field).dy).abs(),
+      lessThanOrEqualTo(1),
+    );
   });
 }
 

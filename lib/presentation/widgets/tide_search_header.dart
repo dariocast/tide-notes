@@ -53,6 +53,7 @@ class TideSearchHeader extends StatelessWidget {
                   focusNode: focusNode,
                   onChanged: onChanged,
                   textInputAction: TextInputAction.search,
+                  textAlignVertical: TextAlignVertical.center,
                   style: Theme.of(context).textTheme.bodyMedium,
                   decoration: InputDecoration(
                     hintText: l10n.searchHint,
@@ -61,6 +62,7 @@ class TideSearchHeader extends StatelessWidget {
                     focusedBorder: InputBorder.none,
                     prefixIcon: const Center(
                       widthFactor: 1,
+                      heightFactor: 1,
                       child: FaIcon(TideIcons.search, size: 16),
                     ),
                     suffixIcon: controller.text.isEmpty
