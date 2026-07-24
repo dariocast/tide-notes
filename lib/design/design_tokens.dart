@@ -102,6 +102,7 @@ abstract final class GDecor {
 abstract final class GMotion {
   static const settle = Cubic(0.16, 0.99, 0.26, 1);
   static const color = Duration(milliseconds: 150);
+  static const reveal = Duration(milliseconds: 180);
 }
 
 abstract final class GRadii {

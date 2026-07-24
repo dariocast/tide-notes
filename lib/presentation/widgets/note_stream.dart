@@ -14,6 +14,7 @@ class NoteStream extends StatelessWidget {
     required this.onRescue,
     this.undoNoteId,
     this.onUndo,
+    this.showNoSearchResults = false,
     this.haptic = defaultTideHaptic,
     this.now = defaultNoteNow,
   });
@@ -24,6 +25,7 @@ class NoteStream extends StatelessWidget {
   final ValueChanged<String> onRescue;
   final String? undoNoteId;
   final VoidCallback? onUndo;
+  final bool showNoSearchResults;
   final VoidCallback haptic;
   final DateTime Function() now;
 
@@ -31,9 +33,11 @@ class NoteStream extends StatelessWidget {
   Widget build(BuildContext context) {
     final Widget stream;
     if (notes.isEmpty) {
-      stream = const KeyedSubtree(
-        key: ValueKey('note-list'),
-        child: TideEmptyState(),
+      stream = KeyedSubtree(
+        key: const ValueKey('note-list'),
+        child: showNoSearchResults
+            ? const TideNoSearchResults()
+            : const TideEmptyState(),
       );
     } else {
       stream = ListView.builder(

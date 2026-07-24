@@ -45,6 +45,15 @@ class TideLocalizations {
   String get undoRescue => isItalian ? 'Annulla emersione' : 'Undo rescue';
   String get rescueNote => isItalian ? 'Riporta a galla' : 'Rescue note';
   String get editNote => isItalian ? 'Modifica nota' : 'Edit note';
+  String get searchNotes => isItalian ? 'Cerca note' : 'Search notes';
+  String get searchHint => isItalian ? 'Cerca nelle note…' : 'Search notes…';
+  String get clearSearch =>
+      isItalian ? 'Cancella testo di ricerca' : 'Clear search text';
+  String get closeSearch => isItalian ? 'Cancella' : 'Cancel';
+  String get noSearchResultsTitle =>
+      isItalian ? 'Nessuna nota trovata.' : 'No notes found.';
+  String get noSearchResultsBody =>
+      isItalian ? 'Prova con una ricerca diversa.' : 'Try a different search.';
   String relativeSurfacedAge(DateTime surfacedAt, DateTime now) {
     final difference = now.difference(surfacedAt);
     if (difference.isNegative || difference.inMinutes < 1) {

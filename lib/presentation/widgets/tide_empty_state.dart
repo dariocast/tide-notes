@@ -9,9 +9,35 @@ class TideEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = TideLocalizations.of(context);
+    return _TideEmptyContent(title: l10n.emptyTitle, body: l10n.emptyBody);
+  }
+}
+
+class TideNoSearchResults extends StatelessWidget {
+  const TideNoSearchResults({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = TideLocalizations.of(context);
+    return _TideEmptyContent(
+      key: const ValueKey('search-empty-state'),
+      title: l10n.noSearchResultsTitle,
+      body: l10n.noSearchResultsBody,
+    );
+  }
+}
+
+class _TideEmptyContent extends StatelessWidget {
+  const _TideEmptyContent({super.key, required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
     final g = tideColorsOf(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
-    final l10n = TideLocalizations.of(context);
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -25,7 +51,7 @@ class TideEmptyState extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.emptyTitle,
+              title,
               style: Theme.of(context).textTheme.headlineMedium,
               textAlign: TextAlign.left,
             ),
@@ -35,7 +61,7 @@ class TideEmptyState extends StatelessWidget {
                 maxWidth: GLayout.contentNarrow,
               ),
               child: Text(
-                l10n.emptyBody,
+                body,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: g.textMuted),

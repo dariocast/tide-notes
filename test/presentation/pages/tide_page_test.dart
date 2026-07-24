@@ -76,9 +76,9 @@ void main() {
     return (bloc, repository);
   }
 
-  Note makeNote(String id) => Note(
+  Note makeNote(String id, {String? content}) => Note(
     id: id,
-    content: id,
+    content: content ?? id,
     createdAt: timestamp,
     updatedAt: timestamp,
     surfacedAt: timestamp,
@@ -98,6 +98,213 @@ void main() {
       expect(find.byType(NoteCard), findsNothing);
     },
   );
+
+  testWidgets('search action replaces the regular header and focuses input', (
+    tester,
+  ) async {
+    await pumpPage(tester, notes: [makeNote('one')]);
+    await tester.pump();
+
+    final search = find.byKey(const ValueKey('open-search'));
+    final settings = find.bySemanticsLabel('Appearance settings');
+    expect(find.byKey(const ValueKey('open-search')), findsOneWidget);
+    expect(
+      tester.getCenter(search).dx,
+      greaterThan(tester.getCenter(settings).dx),
+    );
+
+    await tester.tap(search);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('search-input')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tide-title')), findsNothing);
+    expect(settings, findsNothing);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('search-input')))
+          .focusNode!
+          .hasFocus,
+      isTrue,
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('composer-transition'))).height,
+      0,
+    );
+  });
+
+  testWidgets('closing search resets query and preserves composer draft', (
+    tester,
+  ) async {
+    await pumpPage(tester, notes: [makeNote('one')]);
+    final composer = find.byKey(const ValueKey('composer-input'));
+    await tester.enterText(composer, 'unfinished draft');
+
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'one');
+    await tester.tap(find.byKey(const ValueKey('close-search')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('search-input')), findsNothing);
+    expect(find.byKey(const ValueKey('tide-title')), findsOneWidget);
+    expect(
+      tester.widget<TextField>(composer).controller!.text,
+      'unfinished draft',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('search-input')))
+          .controller!
+          .text,
+      isEmpty,
+    );
+  });
+
+  testWidgets('search filters content immediately and preserves note order', (
+    tester,
+  ) async {
+    Finder noteCard(String id) => find.byWidgetPredicate(
+      (widget) => widget is NoteCard && widget.note.id == id,
+    );
+    await pumpPage(
+      tester,
+      notes: [
+        makeNote('first', content: 'TODO: Buy Milk'),
+        makeNote('second', content: 'Call Alice'),
+        makeNote('third', content: 'todo: buy train tickets'),
+      ],
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('search-input')),
+      '  ToDo: BuY  ',
+    );
+    await tester.pump();
+
+    expect(noteCard('first'), findsOneWidget);
+    expect(noteCard('second'), findsNothing);
+    expect(noteCard('third'), findsOneWidget);
+    expect(
+      tester.getTopLeft(noteCard('first')).dy,
+      lessThan(tester.getTopLeft(noteCard('third')).dy),
+    );
+  });
+
+  testWidgets('clear restores all notes without closing search', (
+    tester,
+  ) async {
+    Finder noteCard(String id) => find.byWidgetPredicate(
+      (widget) => widget is NoteCard && widget.note.id == id,
+    );
+    await pumpPage(
+      tester,
+      notes: [
+        makeNote('first', content: 'alpha'),
+        makeNote('second', content: 'beta'),
+      ],
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'alpha');
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('clear-search')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('search-input')), findsOneWidget);
+    expect(noteCard('first'), findsOneWidget);
+    expect(noteCard('second'), findsOneWidget);
+  });
+
+  testWidgets('unmatched query shows dedicated feedback', (tester) async {
+    await pumpPage(tester, notes: [makeNote('one', content: 'alpha')]);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('search-input')),
+      'missing',
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('search-empty-state')), findsOneWidget);
+    expect(find.text('No notes found.'), findsOneWidget);
+    expect(find.textContaining('stream is quiet'), findsNothing);
+  });
+
+  testWidgets(
+    'Italian search localizes field, close, and no-results feedback',
+    (tester) async {
+      final appearance = AppearanceController.inMemory(
+        language: TideLanguageSelection.italian,
+      );
+      await pumpPage(
+        tester,
+        notes: [makeNote('one', content: 'alpha')],
+        appearance: appearance,
+      );
+      await tester.pump();
+
+      await tester.tap(find.bySemanticsLabel('Cerca note'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cerca nelle note…'), findsOneWidget);
+      expect(find.text('Cancella'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const ValueKey('search-input')),
+        'assente',
+      );
+      await tester.pump();
+      expect(find.text('Nessuna nota trovata.'), findsOneWidget);
+    },
+  );
+
+  testWidgets('search remains usable in the wide macOS sidebar', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      await pumpPage(tester, notes: [makeNote('one')]);
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('open-search')));
+      await tester.pumpAndSettle();
+
+      final sidebar = find.byKey(const ValueKey('desktop-sidebar'));
+      expect(
+        find.descendant(
+          of: sidebar,
+          matching: find.byKey(const ValueKey('search-input')),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('reduced motion switches to search in one frame', (tester) async {
+    await pumpPage(
+      tester,
+      mediaQuery: const MediaQueryData(disableAnimations: true),
+    );
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('search-input')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tide-title')), findsNothing);
+  });
 
   testWidgets('composer receives focus on startup', (tester) async {
     await pumpPage(tester);
@@ -453,6 +660,18 @@ void main() {
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'query');
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+
+    await tester.tap(find.byKey(const ValueKey('close-search')));
+    await tester.pumpAndSettle();
 
     await pumpPage(
       tester,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../design/tide_icons.dart';
 import 'tide_settings.dart';
 import '../../l10n/tide_localizations.dart';
 
@@ -12,12 +14,14 @@ class TideHeader extends StatelessWidget {
     required this.now,
     required this.onExport,
     required this.onDeleteAll,
+    required this.onSearch,
   });
 
   final int noteCount;
   final DateTime now;
   final VoidCallback onExport;
   final VoidCallback onDeleteAll;
+  final VoidCallback onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +41,16 @@ class TideHeader extends StatelessWidget {
       style: Theme.of(
         context,
       ).textTheme.labelSmall?.copyWith(color: g.textMuted, letterSpacing: 0.6),
+    );
+    final searchButton = Semantics(
+      label: l10n.searchNotes,
+      button: true,
+      child: IconButton(
+        key: const ValueKey('open-search'),
+        tooltip: l10n.searchNotes,
+        onPressed: onSearch,
+        icon: const FaIcon(TideIcons.search, size: 18),
+      ),
     );
 
     return Padding(
@@ -63,7 +77,7 @@ class TideHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox.square(dimension: GLayout.minTouchTarget),
+                searchButton,
               ],
             )
           : Row(
@@ -79,9 +93,16 @@ class TideHeader extends StatelessWidget {
                     ],
                   ),
                 ),
-                TideSettingsButton(
-                  onExport: onExport,
-                  onDeleteAll: onDeleteAll,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TideSettingsButton(
+                      onExport: onExport,
+                      onDeleteAll: onDeleteAll,
+                    ),
+                    const SizedBox(width: GSpace.s1),
+                    searchButton,
+                  ],
                 ),
               ],
             ),

@@ -42,9 +42,11 @@ void main() {
       WidgetTester tester, {
       required TargetPlatform platform,
       required double width,
+      double height = 800,
+      bool searching = false,
     }) async {
       tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = Size(width, 800);
+      tester.view.physicalSize = Size(width, height);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
 
@@ -68,6 +70,7 @@ void main() {
               composer: const Text('composer'),
               undoAction: const Text('undo'),
               stream: const Text('stream'),
+              searching: searching,
             ),
           ),
         ),
@@ -238,6 +241,29 @@ void main() {
 
       expect(find.text('header'), findsNothing);
       expect(find.text('composer'), findsOneWidget);
+      expect(find.text('stream'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('compact-height search keeps header and collapses composer', (
+      tester,
+    ) async {
+      await pumpShell(
+        tester,
+        platform: TargetPlatform.android,
+        width: 800,
+        height: 180,
+        searching: true,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('header'), findsOneWidget);
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('composer-transition')))
+            .height,
+        0,
+      );
       expect(find.text('stream'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
