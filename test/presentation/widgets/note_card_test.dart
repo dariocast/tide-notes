@@ -191,6 +191,46 @@ void main() {
     },
   );
 
+  testWidgets('rescue action keeps editing active while keyboard is open', (
+    tester,
+  ) async {
+    var rescueCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note,
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () => rescueCount++,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PrefixText));
+    await tester.pump();
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.tap(
+      find.byTooltip('Rescue note'),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
+
+    expect(rescueCount, 1);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.byTooltip('Rescue note'), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.byTooltip('Rescue note'),
+        matching: find.byType(TextFieldTapRegion),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'disposing a mid-edit card without a focus-loss event still reports '
     'editing as ended',
