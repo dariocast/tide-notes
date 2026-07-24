@@ -164,6 +164,34 @@ void main() {
   });
 
   testWidgets(
+    'rescue icon appears only while editing and swipe remains active',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: TideAppTheme.foam,
+          home: Scaffold(
+            body: NoteCard(
+              note: note,
+              index: 1,
+              onChanged: (_) {},
+              onRescue: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byTooltip('Rescue note'), findsNothing);
+      expect(find.byType(Dismissible), findsOneWidget);
+
+      await tester.tap(find.byType(PrefixText));
+      await tester.pump();
+
+      expect(find.byTooltip('Rescue note'), findsOneWidget);
+      expect(find.byType(Dismissible), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'disposing a mid-edit card without a focus-loss event still reports '
     'editing as ended',
     (tester) async {

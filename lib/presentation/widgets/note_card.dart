@@ -169,7 +169,7 @@ class _NoteCardState extends State<NoteCard> {
               tooltip: l10n.undoRescue,
               icon: const FaIcon(TideIcons.undo, size: 18),
             )
-          else if (!_editing && widget.rescueEnabled)
+          else if (_editing && widget.rescueEnabled)
             IconButton(
               onPressed: widget.busy ? null : widget.onRescue,
               tooltip: l10n.rescueNote,
