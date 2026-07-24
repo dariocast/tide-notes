@@ -119,7 +119,7 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#1A7180"
   adaptive_icon_foreground: assets/icon/tide-app-icon.png
-  adaptive_icon_foreground_inset: 0
+  adaptive_icon_foreground_inset: 16
   remove_alpha_ios: true
   background_color_ios: "#1A7180"
   macos:
