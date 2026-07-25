@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../design/tide_icons.dart';
+import '../../l10n/tide_localizations.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SubmitIntent extends Intent {
   const SubmitIntent();
@@ -13,10 +16,12 @@ class NoteComposer extends StatefulWidget {
     super.key,
     required this.onSubmit,
     required this.appendCompleted,
+    this.submitOnEnter = false,
   });
 
   final ValueChanged<String> onSubmit;
   final int appendCompleted;
+  final bool submitOnEnter;
 
   @override
   State<NoteComposer> createState() => _NoteComposerState();
@@ -34,6 +39,9 @@ class _NoteComposerState extends State<NoteComposer> {
     _controller = TextEditingController();
     _focusNode = FocusNode();
     _lastAppendCompleted = widget.appendCompleted;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   @override
@@ -44,7 +52,7 @@ class _NoteComposerState extends State<NoteComposer> {
     if (_pendingContent != null && _controller.text == _pendingContent) {
       _controller.clear();
       _pendingContent = null;
-      _focusNode.requestFocus();
+      if (widget.submitOnEnter) _focusNode.requestFocus();
     }
   }
 
@@ -65,18 +73,22 @@ class _NoteComposerState extends State<NoteComposer> {
   @override
   Widget build(BuildContext context) {
     final compact = sizeClassOf(context) == GSizeClass.compact;
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
+    final l10n = TideLocalizations.of(context);
     return Padding(
       key: const ValueKey('composer'),
       padding: EdgeInsets.fromLTRB(
         compact ? GSpace.s4 : GSpace.s6,
         GSpace.s2,
         compact ? GSpace.s4 : GSpace.s6,
-        GSpace.s3,
+        GSpace.s2,
       ),
       child: Shortcuts(
-        shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.enter, meta: true): SubmitIntent(),
+        shortcuts: {
+          if (widget.submitOnEnter)
+            const SingleActivator(LogicalKeyboardKey.enter): SubmitIntent(),
+          const SingleActivator(LogicalKeyboardKey.enter, meta: true):
+              SubmitIntent(),
         },
         child: Actions(
           actions: {
@@ -88,56 +100,59 @@ class _NoteComposerState extends State<NoteComposer> {
             ),
           },
           child: FocusRing(
+            borderRadius: GShapes.composer,
             child: DecoratedBox(
+              key: const ValueKey('composer-surface'),
               decoration: BoxDecoration(
                 color: g.surfaceElevated,
-                border: Border(
-                  left: BorderSide(color: g.accent, width: GDecor.railWidth),
-                  top: BorderSide(color: g.lineSubtle),
-                  right: BorderSide(color: g.lineSubtle),
-                  bottom: BorderSide(color: g.lineSubtle),
-                ),
-                boxShadow: const [GShadows.shadowRaise],
+                border: Border.all(color: g.lineSubtle),
+                borderRadius: GShapes.composer,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const ValueKey('composer-input'),
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      minLines: 2,
-                      maxLines: 5,
-                      keyboardType: TextInputType.multiline,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        hintText: 'Capture a thought…',
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: GSpace.s4,
-                          vertical: GSpace.s3,
+              child: ClipRRect(
+                borderRadius: GShapes.composer,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        key: const ValueKey('composer-input'),
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        minLines: 1,
+                        maxLines: 4,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: widget.submitOnEnter
+                            ? TextInputAction.done
+                            : TextInputAction.newline,
+                        onSubmitted: widget.submitOnEnter
+                            ? (_) => _submit()
+                            : null,
+                        onTapOutside: (_) => _focusNode.unfocus(),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          hintText: l10n.captureHint,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: GSpace.s4,
+                            vertical: GSpace.s2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(GSpace.s2),
-                    child: Semantics(
-                      label: 'Save note',
+                    Semantics(
+                      label: l10n.saveNote,
                       button: true,
                       onTap: _submit,
-                      child: ExcludeSemantics(
-                        child: FilledButton(
-                          onPressed: _submit,
-                          child: const Icon(Icons.arrow_upward_rounded),
-                        ),
+                      child: IconButton(
+                        onPressed: _submit,
+                        tooltip: l10n.saveNote,
+                        icon: const FaIcon(TideIcons.insert, size: 18),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

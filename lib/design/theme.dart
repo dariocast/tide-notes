@@ -2,116 +2,90 @@ import 'package:flutter/material.dart';
 
 import 'design_tokens.dart';
 
-TextStyle _withoutFontFamily(TextStyle style) => TextStyle(
-  inherit: style.inherit,
-  color: style.color,
-  backgroundColor: style.backgroundColor,
-  fontSize: style.fontSize,
-  fontWeight: style.fontWeight,
-  fontStyle: style.fontStyle,
-  letterSpacing: style.letterSpacing,
-  wordSpacing: style.wordSpacing,
-  textBaseline: style.textBaseline,
-  height: style.height,
-  leadingDistribution: style.leadingDistribution,
-  locale: style.locale,
-  foreground: style.foreground,
-  background: style.background,
-  shadows: style.shadows,
-  fontFeatures: style.fontFeatures,
-  fontVariations: style.fontVariations,
-  decoration: style.decoration,
-  decorationColor: style.decorationColor,
-  decorationStyle: style.decorationStyle,
-  decorationThickness: style.decorationThickness,
-  debugLabel: style.debugLabel,
-  overflow: style.overflow,
-);
+const _fontFallback = ['.AppleSystemUIFont', 'Roboto', 'sans-serif'];
 
-abstract final class GravityAppTheme {
-  static ThemeData get light => _build(Brightness.light, GravityTheme.light);
-  static ThemeData get dark => _build(Brightness.dark, GravityTheme.dark);
+abstract final class TideAppTheme {
+  static ThemeData get foam => _build(Brightness.light, TideColors.foam);
+  static ThemeData get deepTide => _build(Brightness.dark, TideColors.deepTide);
+  static ThemeData get abyss => _build(Brightness.dark, TideColors.abyss);
 
-  static ThemeData _build(Brightness brightness, GravityTheme g) {
+  static ThemeData _build(Brightness brightness, TideColors colors) {
     final scheme = ColorScheme(
       brightness: brightness,
-      primary: g.accent,
-      onPrimary: g.textOnAccent,
-      secondary: g.rescue,
-      onSecondary: g.ink,
-      error: g.danger,
-      onError: g.ink,
-      surface: g.surface,
-      onSurface: g.ink,
+      primary: colors.accent,
+      onPrimary: colors.textOnAccent,
+      secondary: colors.rescue,
+      onSecondary: colors.ink,
+      error: colors.danger,
+      onError: colors.ink,
+      surface: colors.surface,
+      onSurface: colors.ink,
     );
     final text = TextTheme(
-      displaySmall: TextStyle(
-        fontSize: 44,
-        height: 1.06,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -.16,
-        color: g.ink,
-      ),
       headlineMedium: TextStyle(
-        fontSize: 32,
-        height: 1.3,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -.32,
-        color: g.ink,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 24,
-        height: 1.3,
-        fontWeight: FontWeight.w400,
-        letterSpacing: -.16,
-        color: g.accentMuted,
+        fontFamily: 'Quicksand',
+        fontFamilyFallback: _fontFallback,
+        fontSize: 30,
+        height: 1.20,
+        fontWeight: FontWeight.w500,
+        color: colors.ink,
       ),
       titleLarge: TextStyle(
-        fontSize: 20,
-        height: 1.5,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -.16,
-        color: g.ink,
+        fontFamily: 'Quicksand',
+        fontFamilyFallback: _fontFallback,
+        fontSize: 24,
+        height: 1.25,
+        fontWeight: FontWeight.w400,
+        color: colors.ink,
       ),
       bodyLarge: TextStyle(
+        fontFamily: 'Nunito',
+        fontFamilyFallback: _fontFallback,
         fontSize: 18,
-        height: 1.6,
+        height: 1.50,
         fontWeight: FontWeight.w400,
-        color: g.textSecondary,
+        color: colors.textSecondary,
       ),
       bodyMedium: TextStyle(
-        fontSize: 16,
-        height: 1.5,
+        fontFamily: 'Nunito',
+        fontFamilyFallback: _fontFallback,
+        fontSize: 17,
+        height: 1.45,
         fontWeight: FontWeight.w400,
-        color: g.ink,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 15,
-        height: 1,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -.16,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 12,
-        height: 1.2,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1,
-        color: g.textMuted,
+        color: colors.ink,
       ),
       bodySmall: TextStyle(
-        fontSize: 13,
-        height: 1.4,
+        fontFamily: 'Nunito',
+        fontFamilyFallback: _fontFallback,
+        fontSize: 12,
+        height: 1.35,
         fontWeight: FontWeight.w500,
-        color: g.textGhost,
+        color: colors.textMuted,
+      ),
+      labelLarge: const TextStyle(
+        fontFamily: 'Nunito',
+        fontFamilyFallback: _fontFallback,
+        fontSize: 15,
+        height: 1.2,
+        fontWeight: FontWeight.w600,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: 'Nunito',
+        fontFamilyFallback: _fontFallback,
+        fontSize: 12,
+        height: 1.25,
+        fontWeight: FontWeight.w600,
+        color: colors.textMuted,
       ),
     );
-    final shape = const RoundedRectangleBorder();
+    final shape = RoundedRectangleBorder(borderRadius: GShapes.control);
     final theme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor: g.bgMid,
-      extensions: [g],
+      iconTheme: IconThemeData(color: colors.accentMuted),
+      scaffoldBackgroundColor: colors.bgMid,
+      extensions: [colors],
       splashFactory: NoSplash.splashFactory,
       visualDensity: VisualDensity.standard,
       cardTheme: CardThemeData(
@@ -132,27 +106,27 @@ abstract final class GravityAppTheme {
         surfaceTintColor: Colors.transparent,
       ),
       dividerTheme: DividerThemeData(
-        color: g.lineSubtle,
+        color: colors.lineSubtle,
         thickness: 1,
         space: 1,
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: UnderlineInputBorder(
-          borderSide: BorderSide(color: g.lineStrong),
+          borderSide: BorderSide(color: colors.lineStrong),
         ),
         enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: g.lineStrong),
+          borderSide: BorderSide(color: colors.lineStrong),
         ),
         focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: g.rescue, width: 2),
+          borderSide: BorderSide(color: colors.rescue, width: 2),
         ),
-        hintStyle: text.bodyMedium?.copyWith(color: g.textGhost),
+        hintStyle: text.bodyMedium?.copyWith(color: colors.textMuted),
         isDense: true,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
-          backgroundColor: WidgetStatePropertyAll(g.accent),
-          foregroundColor: WidgetStatePropertyAll(g.textOnAccent),
+          backgroundColor: WidgetStatePropertyAll(colors.accent),
+          foregroundColor: WidgetStatePropertyAll(colors.textOnAccent),
           minimumSize: const WidgetStatePropertyAll(
             Size(0, GLayout.minTouchTarget),
           ),
@@ -161,51 +135,59 @@ abstract final class GravityAppTheme {
           ),
           shape: WidgetStatePropertyAll(shape),
           elevation: const WidgetStatePropertyAll(0),
-          overlayColor: WidgetStatePropertyAll(g.ink.withValues(alpha: .06)),
+          overlayColor: WidgetStatePropertyAll(
+            colors.ink.withValues(alpha: .06),
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: WidgetStatePropertyAll(g.ink),
+          foregroundColor: WidgetStatePropertyAll(colors.ink),
           minimumSize: const WidgetStatePropertyAll(
             Size(0, GLayout.minTouchTarget),
           ),
           shape: WidgetStatePropertyAll(shape),
-          side: WidgetStatePropertyAll(BorderSide(color: g.lineSubtle)),
-          overlayColor: WidgetStatePropertyAll(g.ink.withValues(alpha: .06)),
+          side: WidgetStatePropertyAll(BorderSide(color: colors.lineSubtle)),
+          overlayColor: WidgetStatePropertyAll(
+            colors.ink.withValues(alpha: .06),
+          ),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: WidgetStatePropertyAll(g.ink),
+          foregroundColor: WidgetStatePropertyAll(colors.accentMuted),
           minimumSize: const WidgetStatePropertyAll(
             Size.square(GLayout.minTouchTarget),
           ),
-          overlayColor: WidgetStatePropertyAll(g.ink.withValues(alpha: .06)),
+          overlayColor: WidgetStatePropertyAll(
+            colors.ink.withValues(alpha: .06),
+          ),
         ),
       ),
       textSelectionTheme: TextSelectionThemeData(
-        cursorColor: g.accent,
-        selectionColor: g.accent.withValues(alpha: .24),
+        cursorColor: colors.accent,
+        selectionColor: colors.accent.withValues(alpha: .24),
       ),
     );
     final defaults = theme.textTheme;
+    TextStyle nunitoDefault(TextStyle? base) => (base ?? const TextStyle())
+        .copyWith(fontFamily: 'Nunito', fontFamilyFallback: _fontFallback);
     return theme.copyWith(
       textTheme: TextTheme(
-        displayLarge: _withoutFontFamily(defaults.displayLarge!),
-        displayMedium: _withoutFontFamily(defaults.displayMedium!),
-        displaySmall: text.displaySmall,
-        headlineLarge: _withoutFontFamily(defaults.headlineLarge!),
+        displayLarge: nunitoDefault(defaults.displayLarge),
+        displayMedium: nunitoDefault(defaults.displayMedium),
+        displaySmall: nunitoDefault(defaults.displaySmall),
+        headlineLarge: nunitoDefault(defaults.headlineLarge),
         headlineMedium: text.headlineMedium,
-        headlineSmall: text.headlineSmall,
+        headlineSmall: nunitoDefault(defaults.headlineSmall),
         titleLarge: text.titleLarge,
-        titleMedium: _withoutFontFamily(defaults.titleMedium!),
-        titleSmall: _withoutFontFamily(defaults.titleSmall!),
+        titleMedium: nunitoDefault(defaults.titleMedium),
+        titleSmall: nunitoDefault(defaults.titleSmall),
         bodyLarge: text.bodyLarge,
         bodyMedium: text.bodyMedium,
         bodySmall: text.bodySmall,
         labelLarge: text.labelLarge,
-        labelMedium: _withoutFontFamily(defaults.labelMedium!),
+        labelMedium: nunitoDefault(defaults.labelMedium),
         labelSmall: text.labelSmall,
       ),
     );

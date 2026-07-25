@@ -6,12 +6,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/app.dart';
+import 'package:tide/design/appearance_controller.dart';
+import 'package:tide/design/tide_icons.dart';
+import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/delete_all_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
@@ -19,8 +23,6 @@ import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
-import 'package:tide/presentation/widgets/tide_empty_state.dart';
-import 'package:tide/presentation/widgets/tide_header.dart';
 import 'package:tide/presentation/widgets/tide_shell.dart';
 
 void main() {
@@ -32,6 +34,7 @@ void main() {
     MediaQueryData? mediaQuery,
     ThemeData? theme,
     DateTime Function()? now,
+    AppearanceController? appearance,
   }) async {
     final repository = PageRepository();
     final bloc = TideBloc(
@@ -44,6 +47,7 @@ void main() {
       editNote: EditNote(repository, now: () => timestamp),
       rescueNote: RescueNote(repository, now: () => timestamp),
       undoRescue: UndoRescue(repository),
+      deleteAllNotes: DeleteAllNotes(repository),
     );
     addTearDown(() async {
       await bloc.close();
@@ -60,7 +64,7 @@ void main() {
     }
     await tester.pumpWidget(
       theme == null
-          ? TideApp(home: page)
+          ? TideApp(home: page, appearance: appearance)
           : MaterialApp(theme: theme, home: page),
     );
     if (notes.isNotEmpty) {
@@ -72,9 +76,9 @@ void main() {
     return (bloc, repository);
   }
 
-  Note makeNote(String id) => Note(
+  Note makeNote(String id, {String? content}) => Note(
     id: id,
-    content: id,
+    content: content ?? id,
     createdAt: timestamp,
     updatedAt: timestamp,
     surfacedAt: timestamp,
@@ -88,12 +92,245 @@ void main() {
 
       expect(find.byKey(const ValueKey('composer')), findsOneWidget);
       expect(find.byKey(const ValueKey('note-list')), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+      await tester.tap(find.byIcon(TideIcons.insert.data));
       await tester.pump();
 
       expect(find.byType(NoteCard), findsNothing);
     },
   );
+
+  testWidgets('search action replaces the regular header and focuses input', (
+    tester,
+  ) async {
+    await pumpPage(tester, notes: [makeNote('one')]);
+    await tester.pump();
+
+    final search = find.byKey(const ValueKey('open-search'));
+    final settings = find.bySemanticsLabel('Appearance settings');
+    expect(find.byKey(const ValueKey('open-search')), findsOneWidget);
+    expect(
+      tester.getCenter(search).dx,
+      greaterThan(tester.getCenter(settings).dx),
+    );
+
+    await tester.tap(search);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('search-input')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tide-title')), findsNothing);
+    expect(settings, findsNothing);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('search-input')))
+          .focusNode!
+          .hasFocus,
+      isTrue,
+    );
+    expect(
+      tester.getSize(find.byKey(const ValueKey('composer-transition'))).height,
+      0,
+    );
+  });
+
+  testWidgets('closing search resets query and preserves composer draft', (
+    tester,
+  ) async {
+    await pumpPage(tester, notes: [makeNote('one')]);
+    final composer = find.byKey(const ValueKey('composer-input'));
+    await tester.enterText(composer, 'unfinished draft');
+
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'one');
+    await tester.tap(find.byKey(const ValueKey('close-search')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('search-input')), findsNothing);
+    expect(find.byKey(const ValueKey('tide-title')), findsOneWidget);
+    expect(
+      tester.widget<TextField>(composer).controller!.text,
+      'unfinished draft',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('search-input')))
+          .controller!
+          .text,
+      isEmpty,
+    );
+  });
+
+  testWidgets('search filters content immediately and preserves note order', (
+    tester,
+  ) async {
+    Finder noteCard(String id) => find.byWidgetPredicate(
+      (widget) => widget is NoteCard && widget.note.id == id,
+    );
+    await pumpPage(
+      tester,
+      notes: [
+        makeNote('first', content: 'TODO: Buy Milk'),
+        makeNote('second', content: 'Call Alice'),
+        makeNote('third', content: 'todo: buy train tickets'),
+      ],
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('search-input')),
+      '  ToDo: BuY  ',
+    );
+    await tester.pump();
+
+    expect(noteCard('first'), findsOneWidget);
+    expect(noteCard('second'), findsNothing);
+    expect(noteCard('third'), findsOneWidget);
+    expect(
+      tester.getTopLeft(noteCard('first')).dy,
+      lessThan(tester.getTopLeft(noteCard('third')).dy),
+    );
+  });
+
+  testWidgets('clear restores all notes without closing search', (
+    tester,
+  ) async {
+    Finder noteCard(String id) => find.byWidgetPredicate(
+      (widget) => widget is NoteCard && widget.note.id == id,
+    );
+    await pumpPage(
+      tester,
+      notes: [
+        makeNote('first', content: 'alpha'),
+        makeNote('second', content: 'beta'),
+      ],
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'alpha');
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('clear-search')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('search-input')), findsOneWidget);
+    expect(noteCard('first'), findsOneWidget);
+    expect(noteCard('second'), findsOneWidget);
+  });
+
+  testWidgets('unmatched query shows dedicated feedback', (tester) async {
+    await pumpPage(tester, notes: [makeNote('one', content: 'alpha')]);
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('search-input')),
+      'missing',
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('search-empty-state')), findsOneWidget);
+    expect(find.text('No notes found.'), findsOneWidget);
+    expect(find.textContaining('stream is quiet'), findsNothing);
+  });
+
+  testWidgets(
+    'Italian search localizes field, close, and no-results feedback',
+    (tester) async {
+      final appearance = AppearanceController.inMemory(
+        language: TideLanguageSelection.italian,
+      );
+      await pumpPage(
+        tester,
+        notes: [makeNote('one', content: 'alpha')],
+        appearance: appearance,
+      );
+      await tester.pump();
+
+      await tester.tap(find.bySemanticsLabel('Cerca note'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cerca nelle note…'), findsOneWidget);
+      expect(find.text('Cancella'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const ValueKey('search-input')),
+        'assente',
+      );
+      await tester.pump();
+      expect(find.text('Nessuna nota trovata.'), findsOneWidget);
+    },
+  );
+
+  testWidgets('search remains usable in the wide macOS sidebar', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 800);
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      await pumpPage(tester, notes: [makeNote('one')]);
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('open-search')));
+      await tester.pumpAndSettle();
+
+      final sidebar = find.byKey(const ValueKey('desktop-sidebar'));
+      expect(
+        find.descendant(
+          of: sidebar,
+          matching: find.byKey(const ValueKey('search-input')),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('reduced motion switches to search in one frame', (tester) async {
+    await pumpPage(
+      tester,
+      mediaQuery: const MediaQueryData(disableAnimations: true),
+    );
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('search-input')), findsOneWidget);
+    expect(find.byKey(const ValueKey('tide-title')), findsNothing);
+  });
+
+  testWidgets('composer receives focus on startup', (tester) async {
+    await pumpPage(tester);
+    await tester.pump();
+
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('composer-input')))
+          .focusNode!
+          .hasFocus,
+      isTrue,
+    );
+  });
+
+  testWidgets('submit on enter sends the note when enabled', (tester) async {
+    final appearance = AppearanceController.inMemory(submitOnEnter: true);
+    final (_, repository) = await pumpPage(tester, appearance: appearance);
+    final composer = find.byKey(const ValueKey('composer-input'));
+
+    await tester.enterText(composer, 'quick note');
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+
+    expect(repository.created.single.content, 'quick note');
+    expect(tester.widget<TextField>(composer).controller!.text, isEmpty);
+  });
 
   testWidgets('button submission clears composer after successful append', (
     tester,
@@ -101,7 +338,7 @@ void main() {
     final (_, repository) = await pumpPage(tester);
     final composer = find.byKey(const ValueKey('composer-input'));
     await tester.enterText(composer, 'capture thought');
-    await tester.tap(find.byIcon(Icons.arrow_upward_rounded));
+    await tester.tap(find.byIcon(TideIcons.insert.data));
     await tester.pumpAndSettle();
 
     expect(repository.created.single.content, 'capture thought');
@@ -146,6 +383,85 @@ void main() {
     expect(find.text('Tide'), findsOneWidget);
     expect(find.textContaining('2 notes captured'), findsOneWidget);
     expect(find.textContaining('Jul 19'), findsOneWidget);
+  });
+
+  testWidgets('mobile settings sheet selects Abyss theme', (tester) async {
+    final appearance = AppearanceController.inMemory();
+    await pumpPage(tester, appearance: appearance);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Theme'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Abyss'));
+    await tester.pumpAndSettle();
+
+    expect(appearance.selection, TideThemeSelection.abyss);
+  });
+
+  testWidgets('language setting switches the app to Italian', (tester) async {
+    final appearance = AppearanceController.inMemory();
+    await pumpPage(tester, appearance: appearance);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Language'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🇮🇹  Italiano'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cattura un pensiero…'), findsOneWidget);
+    expect(appearance.language, TideLanguageSelection.italian);
+  });
+
+  testWidgets('delete all asks for confirmation before dispatching', (
+    tester,
+  ) async {
+    final (_, repository) = await pumpPage(tester, notes: [makeNote('one')]);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete all notes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete all notes?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(repository.deleteAllCalls, 0);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete all notes'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete all'));
+    await tester.pumpAndSettle();
+    expect(repository.deleteAllCalls, 1);
+  });
+
+  testWidgets('macOS settings popover selects Abyss theme', (tester) async {
+    addTearDown(() {
+      debugDefaultTargetPlatformOverride = null;
+    });
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+
+    try {
+      final appearance = AppearanceController.inMemory();
+      await pumpPage(tester, appearance: appearance);
+
+      await tester.tap(find.bySemanticsLabel('Appearance settings'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Theme'), findsOneWidget);
+      await tester.tap(find.text('Theme'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Abyss'));
+      await tester.pumpAndSettle();
+
+      expect(appearance.selection, TideThemeSelection.abyss);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('wide macOS puts controls beside note stream', (tester) async {
@@ -193,7 +509,7 @@ void main() {
         tester,
         notes: [makeNote('top'), makeNote('middle'), makeNote('bottom')],
         mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
       );
       await tester.pump();
 
@@ -264,56 +580,29 @@ void main() {
     }
   });
 
-  testWidgets('composer uses the tokenized capture field', (tester) async {
-    await pumpPage(tester);
-
-    final field = tester.widget<TextField>(
-      find.byKey(const ValueKey('composer-input')),
-    );
-    expect(field.minLines, 2);
-    expect(
-      tester.getSize(find.byKey(const ValueKey('composer'))).height,
-      lessThan(110),
-    );
-  });
-
-  testWidgets('empty stream guidance is left aligned', (tester) async {
-    await pumpPage(tester);
-
-    final guidance = tester.widget<Text>(
-      find.textContaining('Capture anything'),
-    );
-    expect(guidance.textAlign, TextAlign.left);
-  });
-
-  testWidgets('header and empty state use text without decorations', (
+  testWidgets('composer surface and note rows use organic shape language', (
     tester,
   ) async {
-    await pumpPage(tester, theme: GravityAppTheme.light);
+    await pumpPage(tester, notes: [makeNote('one')]);
+    await tester.pump();
 
-    for (final type in [TideHeader, TideEmptyState]) {
-      expect(
-        find.descendant(
-          of: find.byType(type),
-          matching: find.byType(CustomPaint),
-        ),
-        findsNothing,
-      );
-    }
-    final shell = find.byType(TideShell);
-    expect(shell, findsOneWidget);
-    expect(
-      find.descendant(
-        of: shell,
-        matching: find.ancestor(
-          of: find.byType(TideHeader),
-          matching: find.byType(CustomPaint),
-        ),
-      ),
-      findsNothing,
+    final composerSurface = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('composer-surface')),
     );
-    expect(find.text('⌘'), findsNothing);
-    expect(find.text('↵'), findsNothing);
+    final composerDecoration = composerSurface.decoration as BoxDecoration;
+    expect(composerDecoration.borderRadius, GShapes.composer);
+    expect(composerDecoration.boxShadow, isNull);
+
+    final noteRow = tester.widget<AnimatedContainer>(
+      find.byKey(const ValueKey('note-row')),
+    );
+    final noteDecoration = noteRow.decoration as BoxDecoration;
+    expect(noteDecoration.border, isNull);
+    expect(noteDecoration.borderRadius, isNull);
+
+    final noteContext = tester.element(find.byKey(const ValueKey('note-row')));
+    expect(Theme.of(noteContext).textTheme.bodyMedium?.fontFamily, 'Nunito');
+    expect(find.text('Tide'), findsOneWidget);
   });
 
   testWidgets('tapping note opens inline editor and focus loss flushes edit', (
@@ -365,12 +654,24 @@ void main() {
     await pumpPage(
       tester,
       mediaQuery: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
-      theme: GravityAppTheme.light,
+      theme: TideAppTheme.foam,
     );
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'query');
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+
+    await tester.tap(find.byKey(const ValueKey('close-search')));
+    await tester.pumpAndSettle();
 
     await pumpPage(
       tester,
@@ -378,7 +679,7 @@ void main() {
         textScaler: TextScaler.linear(1.3),
         platformBrightness: Brightness.dark,
       ),
-      theme: GravityAppTheme.dark,
+      theme: TideAppTheme.deepTide,
     );
     expect(tester.takeException(), isNull);
     await expectLater(tester, meetsGuideline(textContrastGuideline));
@@ -390,6 +691,7 @@ final class PageRepository implements NoteRepository {
   final StreamController<List<Note>> controller =
       StreamController<List<Note>>.broadcast();
   final List<Note> created = [];
+  int deleteAllCalls = 0;
   final List<String> updatedContents = [];
 
   @override
@@ -400,6 +702,12 @@ final class PageRepository implements NoteRepository {
     created.add(note);
     controller.add([...created]);
   }
+
+  @override
+  Future<int> importNotes(List<Note> notes) async => 0;
+
+  @override
+  Future<void> deleteAll() async => deleteAllCalls++;
 
   @override
   Future<void> updateContent(

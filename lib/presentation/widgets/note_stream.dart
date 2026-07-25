@@ -12,6 +12,9 @@ class NoteStream extends StatelessWidget {
     required this.busyNoteIds,
     required this.onChanged,
     required this.onRescue,
+    this.undoNoteId,
+    this.onUndo,
+    this.showNoSearchResults = false,
     this.haptic = defaultTideHaptic,
     this.now = defaultNoteNow,
   });
@@ -20,37 +23,47 @@ class NoteStream extends StatelessWidget {
   final Set<String> busyNoteIds;
   final ValueChanged<NoteEdit> onChanged;
   final ValueChanged<String> onRescue;
+  final String? undoNoteId;
+  final VoidCallback? onUndo;
+  final bool showNoSearchResults;
   final VoidCallback haptic;
   final DateTime Function() now;
 
   @override
   Widget build(BuildContext context) {
+    final Widget stream;
     if (notes.isEmpty) {
-      return const KeyedSubtree(
-        key: ValueKey('note-list'),
-        child: TideEmptyState(),
+      stream = KeyedSubtree(
+        key: const ValueKey('note-list'),
+        child: showNoSearchResults
+            ? const TideNoSearchResults()
+            : const TideEmptyState(),
+      );
+    } else {
+      stream = ListView.builder(
+        key: const ValueKey('note-list'),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.only(bottom: GSpace.s5),
+        itemCount: notes.length,
+        itemBuilder: (context, index) {
+          final note = notes[index];
+          return NoteCard(
+            key: ValueKey(note.id),
+            note: note,
+            index: index,
+            busy: busyNoteIds.contains(note.id),
+            rescueEnabled: index > 0,
+            onChanged: (content) => onChanged(NoteEdit(note.id, content)),
+            onRescue: () => onRescue(note.id),
+            onUndo: note.id == undoNoteId ? onUndo : null,
+            haptic: haptic,
+            now: now,
+          );
+        },
       );
     }
 
-    return ListView.builder(
-      key: const ValueKey('note-list'),
-      padding: const EdgeInsets.only(bottom: GSpace.s5),
-      itemCount: notes.length,
-      itemBuilder: (context, index) {
-        final note = notes[index];
-        return NoteCard(
-          key: ValueKey(note.id),
-          note: note,
-          index: index,
-          busy: busyNoteIds.contains(note.id),
-          rescueEnabled: index > 0,
-          onChanged: (content) => onChanged(NoteEdit(note.id, content)),
-          onRescue: () => onRescue(note.id),
-          haptic: haptic,
-          now: now,
-        );
-      },
-    );
+    return stream;
   }
 }
 

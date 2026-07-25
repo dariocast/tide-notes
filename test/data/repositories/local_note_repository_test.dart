@@ -38,6 +38,24 @@ void main() {
     expect(actual.surfacedAt, older.surfacedAt);
   });
 
+  test('deleteAll removes every note', () async {
+    await repository.createNote(older);
+    await repository.createNote(newer);
+
+    await repository.deleteAll();
+
+    expect(await repository.watchNotes().first, isEmpty);
+  });
+
+  test('imports notes and ignores IDs already in the local database', () async {
+    await repository.createNote(older);
+
+    final imported = await repository.importNotes([older, newer]);
+
+    expect(imported, 1);
+    expect(await repository.watchNotes().first, [newer, older]);
+  });
+
   test('rescue is atomic and returns previous values', () async {
     await repository.createNote(older);
     final later = base.add(const Duration(hours: 1));

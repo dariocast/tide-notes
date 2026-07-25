@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'appearance_controller.dart';
 import 'design_tokens.dart';
 
 enum GSizeClass { compact, medium, expanded }
@@ -33,13 +32,13 @@ class GSizeClassScope extends InheritedWidget {
       sizeClass != oldWidget.sizeClass;
 }
 
-/// Resolves the Gravity palette, falling back to the brightness default so
+/// Resolves the Tide palette, falling back to the brightness default so
 /// widgets never crash when the extension is momentarily absent.
-GravityTheme gravityOf(BuildContext context) =>
-    Theme.of(context).extension<GravityTheme>() ??
+TideColors tideColorsOf(BuildContext context) =>
+    Theme.of(context).extension<TideColors>() ??
     (Theme.of(context).brightness == Brightness.dark
-        ? GravityTheme.dark
-        : GravityTheme.light);
+        ? TideColors.deepTide
+        : TideColors.foam);
 
 class PaperBackground extends StatelessWidget {
   const PaperBackground({super.key, required this.child});
@@ -48,7 +47,8 @@ class PaperBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
+    if (g.isOled) return ColoredBox(color: Colors.black, child: child);
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -57,22 +57,7 @@ class PaperBackground extends StatelessWidget {
           colors: [g.bgTop, g.bgMid, g.bgBottom],
         ),
       ),
-      // A soft luminous bloom lifts the top-centre of the paper, giving the
-      // flat gradient a sense of being lit from above the masthead.
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.85),
-            radius: 1.15,
-            colors: [
-              g.surfaceElevated.withValues(alpha: GDecor.bloomAlpha),
-              g.surfaceElevated.withValues(alpha: 0),
-            ],
-            stops: const [0, 0.62],
-          ),
-        ),
-        child: child,
-      ),
+      child: child,
     );
   }
 }
@@ -89,51 +74,46 @@ class Hairline extends StatelessWidget {
     child: SizedBox(
       height: GDecor.hairline,
       width: double.infinity,
-      child: ColoredBox(color: gravityOf(context).lineSubtle),
+      child: ColoredBox(color: tideColorsOf(context).lineSubtle),
     ),
   );
 }
 
-class GravityMotion {
-  const GravityMotion(this.context);
+class TideMotionPolicy {
+  const TideMotionPolicy(this.context);
 
   final BuildContext context;
 
-  Duration duration(Duration value) =>
-      MediaQuery.disableAnimationsOf(context) ||
-          !(AppearanceScope.maybeOf(context)?.motionEnabled ?? true)
-      ? GMotion.colorFast
-      : value;
+  bool get reduceMotion => MediaQuery.disableAnimationsOf(context);
+
+  Duration duration(Duration normal) => reduceMotion ? Duration.zero : normal;
 }
 
-extension GravityContext on BuildContext {
-  GravityMotion get motion => GravityMotion(this);
+extension TideContext on BuildContext {
+  TideMotionPolicy get motion => TideMotionPolicy(this);
 }
 
+/// A restrained focus outline: a 2px accent-colored border with no glow or
+/// shadow. Pass [borderRadius] to match a rounded surface underneath; leave
+/// it null for flat surfaces such as note rows.
 class FocusRing extends StatelessWidget {
-  const FocusRing({super.key, required this.child});
+  const FocusRing({super.key, required this.child, this.borderRadius});
 
   final Widget child;
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
     return Focus(
       child: Builder(
         builder: (context) => AnimatedContainer(
           duration: context.motion.duration(GMotion.color),
           curve: GMotion.settle,
           decoration: BoxDecoration(
+            borderRadius: borderRadius,
             border: Focus.of(context).hasFocus
-                ? Border.all(color: g.rescue.withValues(alpha: .9), width: 2)
-                : null,
-            boxShadow: Focus.of(context).hasFocus
-                ? [
-                    BoxShadow(
-                      color: g.rescue.withValues(alpha: .28),
-                      blurRadius: 3,
-                    ),
-                  ]
+                ? Border.all(color: g.accent, width: 2)
                 : null,
           ),
           child: child,

@@ -31,6 +31,27 @@ final class LocalNoteRepository implements NoteRepository {
       .insert(NoteModel.fromEntity(note).toCompanion());
 
   @override
+  Future<int> importNotes(List<Note> notes) async {
+    var imported = 0;
+    await _database.transaction(() async {
+      for (final note in notes) {
+        final existing = await (_database.select(
+          _database.noteRecords,
+        )..where((table) => table.id.equals(note.id))).getSingleOrNull();
+        if (existing != null) continue;
+        await _database
+            .into(_database.noteRecords)
+            .insert(NoteModel.fromEntity(note).toCompanion());
+        imported++;
+      }
+    });
+    return imported;
+  }
+
+  @override
+  Future<void> deleteAll() => _database.delete(_database.noteRecords).go();
+
+  @override
   Future<void> updateContent(
     String id,
     String content,

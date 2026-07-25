@@ -5,9 +5,12 @@ import 'package:flutter/services.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../design/tide_icons.dart';
 import '../../core/utils/note_metadata_formatter.dart';
 import '../../domain/entities/note.dart';
+import '../../l10n/tide_localizations.dart';
 import 'prefix_text.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void defaultTideHaptic() {
   if (defaultTargetPlatform == TargetPlatform.macOS) return;
@@ -23,10 +26,12 @@ class NoteCard extends StatefulWidget {
     required this.index,
     required this.onChanged,
     required this.onRescue,
+    this.onUndo,
     this.busy = false,
     this.rescueEnabled = true,
     this.haptic = defaultTideHaptic,
     this.now = defaultNoteNow,
+    this.onEditingChanged,
   });
 
   final Note note;
@@ -35,8 +40,10 @@ class NoteCard extends StatefulWidget {
   final bool rescueEnabled;
   final ValueChanged<String> onChanged;
   final VoidCallback onRescue;
+  final VoidCallback? onUndo;
   final VoidCallback haptic;
   final DateTime Function() now;
+  final ValueChanged<bool>? onEditingChanged;
 
   @override
   State<NoteCard> createState() => _NoteCardState();
@@ -66,6 +73,7 @@ class _NoteCardState extends State<NoteCard> {
     if (widget.busy) return;
     _controller = TextEditingController(text: widget.note.content);
     setState(() => _editing = true);
+    widget.onEditingChanged?.call(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _focusNode.requestFocus();
     });
@@ -76,10 +84,17 @@ class _NoteCardState extends State<NoteCard> {
     final controller = _controller;
     if (controller != null) widget.onChanged(controller.text);
     setState(() => _editing = false);
+    widget.onEditingChanged?.call(false);
   }
 
   @override
   void dispose() {
+    if (_editing) {
+      final onEditingChanged = widget.onEditingChanged;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onEditingChanged?.call(false);
+      });
+    }
     _focusNode
       ..removeListener(_handleFocusChange)
       ..dispose();
@@ -89,23 +104,17 @@ class _NoteCardState extends State<NoteCard> {
 
   @override
   Widget build(BuildContext context) {
-    final g = gravityOf(context);
+    final g = tideColorsOf(context);
+    final l10n = TideLocalizations.of(context);
     final compact = sizeClassOf(context) == GSizeClass.compact;
-    final isTop = widget.index == 0;
     final rescue = rescueMetadata(widget.note.rescueCount);
     final metadata = [
-      relativeSurfacedAge(widget.note.surfacedAt, widget.now()),
+      l10n.relativeSurfacedAge(widget.note.surfacedAt, widget.now()),
       MaterialLocalizations.of(
         context,
       ).formatMediumDate(widget.note.surfacedAt),
       if (rescue.isNotEmpty) rescue,
     ].join(' • ');
-
-    final railColor = isTop
-        ? g.accent
-        : (_hovered
-              ? g.accentMuted.withValues(alpha: 0.7)
-              : g.ink.withValues(alpha: 0));
 
     final child = AnimatedContainer(
       key: const ValueKey('note-row'),
@@ -113,98 +122,97 @@ class _NoteCardState extends State<NoteCard> {
       duration: context.motion.duration(GMotion.color),
       curve: GMotion.settle,
       decoration: BoxDecoration(
-        color: _hovered ? g.ink.withValues(alpha: GDecor.hoverAlpha) : null,
-        border: Border(
-          left: BorderSide(color: railColor, width: GDecor.railWidth),
-          bottom: BorderSide(color: g.lineSubtle, width: GDecor.hairline),
-        ),
+        color: _hovered
+            ? g.accentSubtle.withValues(alpha: GDecor.hoverAlpha)
+            : null,
       ),
       padding: EdgeInsets.fromLTRB(
-        (compact ? GSpace.s4 : GSpace.s6) - GDecor.railWidth,
-        GSpace.s4,
         compact ? GSpace.s4 : GSpace.s6,
-        GSpace.s4,
+        GSpace.s2,
+        compact ? GSpace.s4 : GSpace.s6,
+        GSpace.s2,
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_editing)
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              maxLines: null,
-              textInputAction: TextInputAction.newline,
-              decoration: const InputDecoration(
-                contentPadding: EdgeInsets.zero,
-                isDense: true,
-                labelText: 'Edit note',
-              ),
-              onChanged: widget.onChanged,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_editing)
+                  TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    maxLines: null,
+                    textInputAction: TextInputAction.newline,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                      labelText: l10n.editNote,
+                    ),
+                    onTapOutside: (_) => _focusNode.unfocus(),
+                    onChanged: widget.onChanged,
+                  )
+                else
+                  PrefixText(content: widget.note.content, index: widget.index),
+                const SizedBox(height: GSpace.s1),
+                Text(metadata, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          if (!_editing && widget.onUndo != null)
+            IconButton(
+              onPressed: widget.busy ? null : widget.onUndo,
+              tooltip: l10n.undoRescue,
+              icon: const FaIcon(TideIcons.undo, size: 18),
             )
-          else
-            PrefixText(content: widget.note.content, index: widget.index),
-          const SizedBox(height: GSpace.s2),
-          Text(metadata, style: Theme.of(context).textTheme.bodySmall),
+          else if (_editing && widget.rescueEnabled)
+            TextFieldTapRegion(
+              child: IconButton(
+                onPressed: widget.busy ? null : widget.onRescue,
+                tooltip: l10n.rescueNote,
+                icon: const FaIcon(TideIcons.surface, size: 18),
+              ),
+            ),
         ],
       ),
     );
 
-    final interactive = FocusRing(
-      child: MouseRegion(
-        cursor: widget.busy
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
-      ),
+    final rowInteraction = MouseRegion(
+      cursor: widget.busy ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
     );
+    final interactive = _editing
+        ? rowInteraction
+        : FocusRing(child: rowInteraction);
 
     if (widget.busy || !widget.rescueEnabled) {
       return KeyedSubtree(key: ValueKey(widget.note.id), child: interactive);
     }
 
     return Semantics(
-      label: 'Rescue note',
+      label: l10n.rescueNote,
       hint: widget.note.content,
       button: true,
       customSemanticsActions: {
-        const CustomSemanticsAction(label: 'Rescue note'): widget.onRescue,
+        CustomSemanticsAction(label: l10n.rescueNote): widget.onRescue,
       },
       child: Dismissible(
         key: ValueKey(widget.note.id),
         direction: DismissDirection.startToEnd,
         background: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [g.rescueSoft, g.rescueSoft.withValues(alpha: 0)],
-              stops: const [0.55, 1],
+          decoration: BoxDecoration(color: g.rescueSoft),
+          child: Padding(
+            padding: EdgeInsets.only(left: compact ? GSpace.s4 : GSpace.s6),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FaIcon(TideIcons.surface, color: g.rescue, size: 20),
             ),
-            border: Border(
-              left: BorderSide(color: g.rescue, width: GDecor.railWidth),
-            ),
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  left: (compact ? GSpace.s4 : GSpace.s6) - GDecor.railWidth,
-                ),
-                child: Icon(
-                  Icons.arrow_upward_rounded,
-                  color: g.rescue,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: GSpace.s3),
-              Icon(
-                Icons.arrow_upward_rounded,
-                color: g.rescue.withValues(alpha: GDecor.swipeGlyphAlpha),
-                size: 40,
-              ),
-            ],
           ),
         ),
         confirmDismiss: (_) async {

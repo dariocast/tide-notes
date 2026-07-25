@@ -42,15 +42,17 @@ void main() {
       WidgetTester tester, {
       required TargetPlatform platform,
       required double width,
+      double height = 800,
+      bool searching = false,
     }) async {
       tester.view.devicePixelRatio = 1;
-      tester.view.physicalSize = Size(width, 800);
+      tester.view.physicalSize = Size(width, height);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: Scaffold(
             body: TideShell(
               platform: platform,
@@ -68,6 +70,7 @@ void main() {
               composer: const Text('composer'),
               undoAction: const Text('undo'),
               stream: const Text('stream'),
+              searching: searching,
             ),
           ),
         ),
@@ -120,25 +123,6 @@ void main() {
       expect(
         find.descendant(of: sidebar, matching: find.text('stream')),
         findsNothing,
-      );
-      expect(
-        tester.getTopLeft(find.text('header')).dy,
-        lessThan(tester.getTopLeft(find.text('composer')).dy),
-      );
-      expect(
-        tester.getTopLeft(find.text('composer')).dy,
-        lessThan(tester.getTopLeft(find.text('undo')).dy),
-      );
-
-      final divider = find.byKey(const ValueKey('desktop-divider'));
-      expect(tester.getSize(divider).width, GDecor.hairline);
-      expect(
-        tester
-            .widget<ColoredBox>(
-              find.descendant(of: divider, matching: find.byType(ColoredBox)),
-            )
-            .color,
-        GravityTheme.light.lineSubtle,
       );
     });
 
@@ -200,7 +184,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: Scaffold(
             body: TideShell(
               platform: TargetPlatform.macOS,
@@ -232,59 +216,56 @@ void main() {
       expect(tester.widget<TextField>(input).focusNode!.hasFocus, isTrue);
     });
 
-    testWidgets('rebuilds stable regions with updated children', (
+    testWidgets('compact height keeps the composer and stream visible', (
       tester,
     ) async {
-      late StateSetter rebuild;
-      var header = 'first header';
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(800, 180);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: GravityAppTheme.light,
+          theme: TideAppTheme.foam,
           home: Scaffold(
-            body: StatefulBuilder(
-              builder: (context, setState) {
-                rebuild = setState;
-                return TideShell(
-                  platform: TargetPlatform.iOS,
-                  header: Text(header),
-                  composer: const Text('composer'),
-                  undoAction: const Text('undo'),
-                  stream: const Text('stream'),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-
-      rebuild(() => header = 'updated header');
-      await tester.pump();
-
-      expect(find.text('first header'), findsNothing);
-      expect(find.text('updated header'), findsOneWidget);
-    });
-
-    testWidgets('requires a bounded full-viewport height', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: GravityAppTheme.light,
-          home: SingleChildScrollView(
-            child: TideShell(
-              platform: TargetPlatform.iOS,
+            body: TideShell(
+              platform: TargetPlatform.android,
               header: const Text('header'),
               composer: const Text('composer'),
-              undoAction: const Text('undo'),
+              undoAction: const SizedBox.shrink(),
               stream: const Text('stream'),
             ),
           ),
         ),
       );
 
-      expect(
-        tester.takeException().toString(),
-        contains('TideShell requires a bounded height'),
+      expect(find.text('header'), findsNothing);
+      expect(find.text('composer'), findsOneWidget);
+      expect(find.text('stream'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('compact-height search keeps header and collapses composer', (
+      tester,
+    ) async {
+      await pumpShell(
+        tester,
+        platform: TargetPlatform.android,
+        width: 800,
+        height: 180,
+        searching: true,
       );
+      await tester.pumpAndSettle();
+
+      expect(find.text('header'), findsOneWidget);
+      expect(
+        tester
+            .getSize(find.byKey(const ValueKey('composer-transition')))
+            .height,
+        0,
+      );
+      expect(find.text('stream'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 }

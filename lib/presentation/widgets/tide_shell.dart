@@ -22,6 +22,7 @@ class TideShell extends StatefulWidget {
     required this.composer,
     required this.undoAction,
     required this.stream,
+    this.searching = false,
     this.platform,
   });
 
@@ -30,6 +31,7 @@ class TideShell extends StatefulWidget {
   final Widget undoAction;
   final Widget stream;
   final TargetPlatform? platform;
+  final bool searching;
 
   @override
   State<TideShell> createState() => _TideShellState();
@@ -56,13 +58,36 @@ class _TideShellState extends State<TideShell> {
         constraints.maxWidth,
       );
       return switch (layout) {
-        TideShellLayout.vertical => _buildVertical(),
+        TideShellLayout.vertical => _buildVertical(context, constraints),
         TideShellLayout.desktopSplit => _buildDesktop(context),
       };
     },
   );
 
-  Widget _buildVertical() => GSizeClassScope(
+  Widget _composerRegion(BuildContext context) => _region(
+    _composerKey,
+    TweenAnimationBuilder<double>(
+      tween: Tween(end: widget.searching ? 0 : 1),
+      duration: context.motion.duration(GMotion.reveal),
+      curve: GMotion.settle,
+      builder: (context, factor, child) => ClipRect(
+        key: const ValueKey('composer-transition'),
+        child: Align(
+          heightFactor: factor,
+          child: IgnorePointer(
+            ignoring: widget.searching,
+            child: ExcludeSemantics(excluding: widget.searching, child: child),
+          ),
+        ),
+      ),
+      child: widget.composer,
+    ),
+  );
+
+  Widget _buildVertical(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) => GSizeClassScope(
     sizeClass: GSizeClass.compact,
     child: SizedBox(
       width: double.infinity,
@@ -70,10 +95,13 @@ class _TideShellState extends State<TideShell> {
         child: Column(
           key: const ValueKey('vertical-layout'),
           children: [
-            _region(_headerKey, widget.header),
-            _region(_composerKey, widget.composer),
+            // With the keyboard open in landscape there may be only a small
+            // strip of vertical space left. Keep the composer usable instead
+            // of letting the fixed-height header overflow the column.
+            if (constraints.maxHeight >= 240 || widget.searching)
+              _region(_headerKey, widget.header),
+            _composerRegion(context),
             _region(_undoActionKey, widget.undoAction),
-            const Hairline(indent: GSpace.s4),
             Expanded(child: _region(_streamKey, widget.stream)),
           ],
         ),
@@ -96,7 +124,7 @@ class _TideShellState extends State<TideShell> {
               child: Column(
                 children: [
                   _region(_headerKey, widget.header),
-                  _region(_composerKey, widget.composer),
+                  _composerRegion(context),
                   _region(_undoActionKey, widget.undoAction),
                 ],
               ),
@@ -104,7 +132,7 @@ class _TideShellState extends State<TideShell> {
             SizedBox(
               key: const ValueKey('desktop-divider'),
               width: GDecor.hairline,
-              child: ColoredBox(color: gravityOf(context).lineSubtle),
+              child: ColoredBox(color: tideColorsOf(context).lineSubtle),
             ),
             Expanded(child: _region(_streamKey, widget.stream)),
           ],

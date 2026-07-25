@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/error/tide_failure.dart';
+import '../../core/utils/note_exporter.dart';
 import '../../domain/entities/note.dart';
+import '../../domain/usecases/delete_all_notes.dart';
 import '../../domain/usecases/append_note.dart';
 import '../../domain/usecases/edit_note.dart';
+import '../../domain/usecases/import_notes.dart';
 import '../../domain/usecases/rescue_note.dart';
 import '../../domain/usecases/undo_rescue.dart';
 import '../../domain/usecases/watch_notes.dart';
@@ -19,17 +22,27 @@ final class TideBloc extends Bloc<TideEvent, TideState> {
     required EditNote editNote,
     required RescueNote rescueNote,
     required UndoRescue undoRescue,
+    required DeleteAllNotes deleteAllNotes,
+    NoteExporter noteExporter = const NoteExporter(),
+    ImportNotes? importNotes,
     this.editDebounce = const Duration(milliseconds: 350),
   }) : _watchNotes = watchNotes,
        _appendNote = appendNote,
        _editNote = editNote,
        _rescueNote = rescueNote,
        _undoRescue = undoRescue,
+       _deleteAllNotes = deleteAllNotes,
+       _noteExporter = noteExporter,
+       _importNotes = importNotes,
        super(const TideState()) {
     on<TideStarted>(_onStarted);
     on<NotesReceived>(_onNotesReceived);
     on<NotesStreamFailed>(_onNotesStreamFailed);
     on<NoteAppendRequested>(_onAppendRequested);
+    on<NotesDeleteAllRequested>(_onDeleteAllRequested);
+    on<NotesExportRequested>(_onExportRequested);
+    on<NotesImportRequested>(_onImportRequested);
+    on<NotesImportFailed>(_onImportFailed);
     on<NoteEditRequested>(_onEditRequested);
     on<NoteRescueRequested>(_onRescueRequested);
     on<RescueUndoRequested>(_onUndoRequested);
@@ -41,6 +54,9 @@ final class TideBloc extends Bloc<TideEvent, TideState> {
   final EditNote _editNote;
   final RescueNote _rescueNote;
   final UndoRescue _undoRescue;
+  final DeleteAllNotes _deleteAllNotes;
+  final NoteExporter _noteExporter;
+  final ImportNotes? _importNotes;
   final Duration editDebounce;
   final Map<String, int> _editRevisionById = {};
   final Set<String> _rescueInFlight = {};
@@ -98,6 +114,54 @@ final class TideBloc extends Bloc<TideEvent, TideState> {
       emit(state.copyWith(message: "Couldn't save note. Try again."));
     }
   }
+
+  Future<void> _onDeleteAllRequested(
+    NotesDeleteAllRequested event,
+    Emitter<TideState> emit,
+  ) async {
+    try {
+      await _deleteAllNotes();
+      emit(state.copyWith(message: 'All notes deleted.'));
+    } catch (_) {
+      emit(state.copyWith(message: "Couldn't delete notes. Try again."));
+    }
+  }
+
+  Future<void> _onExportRequested(
+    NotesExportRequested event,
+    Emitter<TideState> emit,
+  ) async {
+    try {
+      await _noteExporter(event.notes);
+      emit(state.copyWith(message: 'Notes exported.'));
+    } catch (_) {
+      emit(state.copyWith(message: "Couldn't export notes. Try again."));
+    }
+  }
+
+  Future<void> _onImportRequested(
+    NotesImportRequested event,
+    Emitter<TideState> emit,
+  ) async {
+    final importNotes = _importNotes;
+    if (importNotes == null) {
+      emit(state.copyWith(message: "Couldn't import notes. Try again."));
+      return;
+    }
+    try {
+      final imported = await importNotes(event.notes);
+      emit(
+        state.copyWith(
+          message: imported == 0 ? 'No new notes imported.' : 'Notes imported.',
+        ),
+      );
+    } catch (_) {
+      emit(state.copyWith(message: "Couldn't import notes. Try again."));
+    }
+  }
+
+  void _onImportFailed(NotesImportFailed event, Emitter<TideState> emit) =>
+      emit(state.copyWith(message: "Couldn't import notes. Try again."));
 
   Future<void> _onEditRequested(
     NoteEditRequested event,

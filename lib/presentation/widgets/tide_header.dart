@@ -1,24 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../design/appearance_controller.dart';
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
+import '../../design/tide_icons.dart';
+import 'tide_settings.dart';
+import '../../l10n/tide_localizations.dart';
 
 class TideHeader extends StatelessWidget {
-  const TideHeader({super.key, required this.noteCount, required this.now});
+  const TideHeader({
+    super.key,
+    required this.noteCount,
+    required this.now,
+    required this.onExport,
+    required this.onImport,
+    required this.onDeleteAll,
+    required this.onSearch,
+  });
 
   final int noteCount;
   final DateTime now;
+  final VoidCallback onExport;
+  final VoidCallback onImport;
+  final VoidCallback onDeleteAll;
+  final VoidCallback onSearch;
 
   @override
   Widget build(BuildContext context) {
-    final countLabel = noteCount == 1
-        ? '1 note captured'
-        : '$noteCount notes captured';
+    final l10n = TideLocalizations.of(context);
+    final countLabel = l10n.notesCaptured(noteCount);
     final date = MaterialLocalizations.of(context).formatMediumDate(now);
-    final g = Theme.of(context).extension<GravityTheme>()!;
+    final g = Theme.of(context).extension<TideColors>()!;
     final compact = sizeClassOf(context) == GSizeClass.compact;
-    final appearance = AppearanceScope.maybeOf(context);
+
+    final title = Text(
+      'Tide',
+      key: const ValueKey('tide-title'),
+      style: Theme.of(context).textTheme.titleLarge,
+    );
+    final metadata = Text(
+      '$countLabel • $date',
+      style: Theme.of(
+        context,
+      ).textTheme.labelSmall?.copyWith(color: g.textMuted, letterSpacing: 0.6),
+    );
+    final searchButton = Semantics(
+      label: l10n.searchNotes,
+      button: true,
+      child: IconButton(
+        key: const ValueKey('open-search'),
+        tooltip: l10n.searchNotes,
+        onPressed: onSearch,
+        icon: const FaIcon(TideIcons.search, size: 18),
+      ),
+    );
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -27,78 +62,54 @@ class TideHeader extends StatelessWidget {
         compact ? GSpace.s4 : GSpace.s6,
         GSpace.s2,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
+      child: compact
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TideSettingsButton(
+                  onExport: onExport,
+                  onImport: onImport,
+                  onDeleteAll: onDeleteAll,
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      title,
+                      const SizedBox(height: GSpace.s2),
+                      metadata,
+                    ],
+                  ),
+                ),
+                searchButton,
+              ],
+            )
+          : Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Tide',
-                  key: const ValueKey('tide-title'),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: GSpace.s2),
-                Text(
-                  '$countLabel • $date',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: g.textMuted,
-                    letterSpacing: 0.6,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      title,
+                      const SizedBox(height: GSpace.s2),
+                      metadata,
+                    ],
                   ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TideSettingsButton(
+                      onExport: onExport,
+                      onImport: onImport,
+                      onDeleteAll: onDeleteAll,
+                    ),
+                    const SizedBox(width: GSpace.s1),
+                    searchButton,
+                  ],
                 ),
               ],
             ),
-          ),
-          if (appearance != null)
-            Semantics(
-              label: 'Appearance settings',
-              button: true,
-              child: PopupMenuButton<_AppearanceOption>(
-                tooltip: 'Appearance settings',
-                icon: const Icon(Icons.tune_rounded),
-                onSelected: (option) => switch (option) {
-                  _AppearanceOption.system => appearance.setThemeMode(
-                    ThemeMode.system,
-                  ),
-                  _AppearanceOption.light => appearance.setThemeMode(
-                    ThemeMode.light,
-                  ),
-                  _AppearanceOption.dark => appearance.setThemeMode(
-                    ThemeMode.dark,
-                  ),
-                  _AppearanceOption.motion => appearance.setMotionEnabled(
-                    !appearance.motionEnabled,
-                  ),
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: _AppearanceOption.system,
-                    child: Text('Use system theme'),
-                  ),
-                  const PopupMenuItem(
-                    value: _AppearanceOption.light,
-                    child: Text('Use light theme'),
-                  ),
-                  const PopupMenuItem(
-                    value: _AppearanceOption.dark,
-                    child: Text('Use dark theme'),
-                  ),
-                  PopupMenuItem(
-                    value: _AppearanceOption.motion,
-                    child: Text(
-                      appearance.motionEnabled
-                          ? 'Reduce motion'
-                          : 'Enable motion',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
-
-enum _AppearanceOption { system, light, dark, motion }

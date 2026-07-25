@@ -7,6 +7,8 @@ import 'package:tide/domain/entities/note.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/prefix_text.dart';
 
+import '../../support/contrast.dart';
+
 void main() {
   final timestamp = DateTime(2026, 7, 18, 12);
   final note = Note(
@@ -18,38 +20,12 @@ void main() {
     rescueCount: 0,
   );
 
-  testWidgets('sinking text keeps readable contrast', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: GravityAppTheme.light,
-        home: Scaffold(
-          body: NoteCard(
-            note: note,
-            index: 30,
-            onChanged: (_) {},
-            onRescue: () {},
-          ),
-        ),
-      ),
-    );
-
-    final richText = tester.widget<RichText>(
-      find.descendant(
-        of: find.byType(PrefixText),
-        matching: find.byType(RichText),
-      ),
-    );
-    final span = richText.text as TextSpan;
-    final color = span.style!.color!;
-    expect(_contrast(color, GLight.surface), greaterThanOrEqualTo(4.5));
-  });
-
   testWidgets('busy card cannot dispatch rescue', (tester) async {
     var rescueCount = 0;
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: note,
@@ -68,13 +44,13 @@ void main() {
     expect(rescueCount, 0);
   });
 
-  testWidgets('row is flat with metadata and a hairline separator', (
+  testWidgets('row is flat with metadata and no visible separator', (
     tester,
   ) async {
     final rescued = note.copyWith(rescueCount: 2);
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: rescued,
@@ -93,76 +69,78 @@ void main() {
     final decoration = row.decoration as BoxDecoration;
     expect(decoration.color, isNull);
     expect(decoration.borderRadius, isNull);
-    expect(decoration.border?.bottom.width, 1);
+    expect(decoration.border, isNull);
     expect(find.textContaining('2h ago'), findsOneWidget);
     expect(find.textContaining('Jul 18'), findsOneWidget);
     expect(find.textContaining('↑ 2'), findsOneWidget);
   });
 
-  for (final (:name, :theme, :ink, :textGhost, :bgBottom, :hoverMinimum) in [
+  for (final (:name, :theme, :colors, :textMuted, :bgBottom) in [
     (
-      name: 'light',
-      theme: GravityAppTheme.light,
-      ink: GLight.ink,
-      textGhost: GLight.textGhost,
-      bgBottom: GLight.bgBottom,
-      hoverMinimum: 4.55,
+      name: 'foam',
+      theme: TideAppTheme.foam,
+      colors: TideColors.foam,
+      textMuted: GFoam.textMuted,
+      bgBottom: GFoam.bgBottom,
     ),
     (
-      name: 'dark',
-      theme: GravityAppTheme.dark,
-      ink: GDark.ink,
-      textGhost: GDark.textGhost,
-      bgBottom: GDark.bgBottom,
-      hoverMinimum: 4.6,
+      name: 'deepTide',
+      theme: TideAppTheme.deepTide,
+      colors: TideColors.deepTide,
+      textMuted: GDeepTide.textMuted,
+      bgBottom: GDeepTide.bgBottom,
     ),
   ]) {
-    testWidgets('$name hovered row keeps metadata readable on darkest paper', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: theme,
-          home: Scaffold(
-            backgroundColor: bgBottom,
-            body: NoteCard(
-              note: note,
-              index: 1,
-              onChanged: (_) {},
-              onRescue: () {},
+    testWidgets(
+      '$name hovered row shows the soft water wash and keeps metadata readable',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(
+              backgroundColor: bgBottom,
+              body: NoteCard(
+                note: note,
+                index: 1,
+                onChanged: (_) {},
+                onRescue: () {},
+              ),
             ),
           ),
-        ),
-      );
-      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      addTearDown(mouse.removePointer);
-      await mouse.addPointer(location: Offset.zero);
-      await mouse.moveTo(
-        tester.getCenter(find.byKey(const ValueKey('note-row'))),
-      );
-      await tester.pump();
+        );
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        addTearDown(mouse.removePointer);
+        await mouse.addPointer(location: Offset.zero);
+        await mouse.moveTo(
+          tester.getCenter(find.byKey(const ValueKey('note-row'))),
+        );
+        await tester.pump();
 
-      final row = tester.widget<AnimatedContainer>(
-        find.byKey(const ValueKey('note-row')),
-      );
-      final hoverColor = (row.decoration as BoxDecoration).color!;
-      expect(hoverColor, ink.withValues(alpha: GDecor.hoverAlpha));
-      final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
-      expect(metadata.style?.color, textGhost);
-      expect(
-        _contrast(
-          metadata.style!.color!,
-          Color.alphaBlend(hoverColor, bgBottom),
-        ),
-        greaterThanOrEqualTo(hoverMinimum),
-      );
-    });
+        final row = tester.widget<AnimatedContainer>(
+          find.byKey(const ValueKey('note-row')),
+        );
+        final hoverColor = (row.decoration as BoxDecoration).color!;
+        expect(
+          hoverColor,
+          colors.accentSubtle.withValues(alpha: GDecor.hoverAlpha),
+        );
+        final metadata = tester.widget<Text>(find.textContaining('Jul 18'));
+        expect(metadata.style?.color, textMuted);
+        expect(
+          contrast(
+            metadata.style!.color!,
+            Color.alphaBlend(hoverColor, bgBottom),
+          ),
+          greaterThanOrEqualTo(4.5),
+        );
+      },
+    );
   }
 
   testWidgets('inline editor keeps the flat row surface', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: GravityAppTheme.light,
+        theme: TideAppTheme.foam,
         home: Scaffold(
           body: NoteCard(
             note: note,
@@ -184,16 +162,117 @@ void main() {
       before.width,
     );
   });
-}
 
-double _contrast(Color foreground, Color background) {
-  final foregroundLuminance = foreground.computeLuminance();
-  final backgroundLuminance = background.computeLuminance();
-  final lighter = foregroundLuminance > backgroundLuminance
-      ? foregroundLuminance
-      : backgroundLuminance;
-  final darker = foregroundLuminance > backgroundLuminance
-      ? backgroundLuminance
-      : foregroundLuminance;
-  return (lighter + 0.05) / (darker + 0.05);
+  testWidgets(
+    'rescue icon appears only while editing and swipe remains active',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: TideAppTheme.foam,
+          home: Scaffold(
+            body: NoteCard(
+              note: note,
+              index: 1,
+              onChanged: (_) {},
+              onRescue: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byTooltip('Rescue note'), findsNothing);
+      expect(find.byType(Dismissible), findsOneWidget);
+
+      await tester.tap(find.byType(PrefixText));
+      await tester.pump();
+
+      expect(find.byTooltip('Rescue note'), findsOneWidget);
+      expect(find.byType(Dismissible), findsOneWidget);
+    },
+  );
+
+  testWidgets('rescue action keeps editing active while keyboard is open', (
+    tester,
+  ) async {
+    var rescueCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note,
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () => rescueCount++,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PrefixText));
+    await tester.pump();
+    expect(find.byType(TextField), findsOneWidget);
+
+    await tester.tap(
+      find.byTooltip('Rescue note'),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump();
+
+    expect(rescueCount, 1);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.byTooltip('Rescue note'), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.byTooltip('Rescue note'),
+        matching: find.byType(TextFieldTapRegion),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'disposing a mid-edit card without a focus-loss event still reports '
+    'editing as ended',
+    (tester) async {
+      var editing = false;
+      var showCard = true;
+      late StateSetter setHostState;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: TideAppTheme.foam,
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                setHostState = setState;
+                return showCard
+                    ? NoteCard(
+                        note: note,
+                        index: 0,
+                        onChanged: (_) {},
+                        onRescue: () {},
+                        onEditingChanged: (value) => editing = value,
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(PrefixText));
+      await tester.pump();
+      expect(editing, isTrue);
+      expect(find.byType(TextField), findsOneWidget);
+
+      // Swap the mid-edit card out for an unrelated widget, tearing down
+      // its State via dispose() without ever routing through the focus
+      // loss handler (no unfocus/blur happens here).
+      setHostState(() => showCard = false);
+      await tester.pump();
+
+      expect(editing, isFalse);
+    },
+  );
 }

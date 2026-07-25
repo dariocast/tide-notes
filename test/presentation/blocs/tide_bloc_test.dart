@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:tide/core/utils/note_exporter.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/delete_all_notes.dart';
+import 'package:tide/domain/usecases/import_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
@@ -35,6 +39,8 @@ void main() {
       editNote: EditNote(repository, now: () => now),
       rescueNote: RescueNote(repository, now: () => now),
       undoRescue: UndoRescue(repository),
+      deleteAllNotes: DeleteAllNotes(repository),
+      importNotes: ImportNotes(repository),
       editDebounce: editDebounce,
     );
     return bloc;
@@ -78,6 +84,62 @@ void main() {
             "Couldn't save note. Try again.",
           ),
     ],
+  );
+
+  blocTest<TideBloc, TideState>(
+    'delete all emits confirmation message after repository succeeds',
+    build: () => buildBloc(),
+    seed: () => TideState.loaded([note]),
+    act: (bloc) => bloc.add(const NotesDeleteAllRequested()),
+    expect: () => [
+      isA<TideState>().having(
+        (state) => state.message,
+        'message',
+        'All notes deleted.',
+      ),
+    ],
+    verify: (_) => expect(repository.notes, isEmpty),
+  );
+
+  blocTest<TideBloc, TideState>(
+    'export requests sharing the current note snapshot',
+    build: () {
+      return TideBloc(
+        watchNotes: WatchNotes(repository),
+        appendNote: AppendNote(repository, now: () => now, newId: () => 'new'),
+        editNote: EditNote(repository, now: () => now),
+        rescueNote: RescueNote(repository, now: () => now),
+        undoRescue: UndoRescue(repository),
+        deleteAllNotes: DeleteAllNotes(repository),
+        noteExporter: NoteExporter(
+          now: () => now,
+          share: (_) async =>
+              const ShareResult('test', ShareResultStatus.success),
+        ),
+      );
+    },
+    act: (bloc) => bloc.add(NotesExportRequested([note])),
+    expect: () => [
+      isA<TideState>().having(
+        (state) => state.message,
+        'message',
+        'Notes exported.',
+      ),
+    ],
+  );
+
+  blocTest<TideBloc, TideState>(
+    'import persists notes and emits confirmation message',
+    build: () => buildBloc(),
+    act: (bloc) => bloc.add(NotesImportRequested([note])),
+    expect: () => [
+      isA<TideState>().having(
+        (state) => state.message,
+        'message',
+        'Notes imported.',
+      ),
+    ],
+    verify: (_) => expect(repository.notes, [note]),
   );
 
   blocTest<TideBloc, TideState>(
@@ -183,6 +245,20 @@ final class FakeNoteRepository implements NoteRepository {
     if (failAppend) throw StateError('failed');
     notes = [...notes, note];
   }
+
+  @override
+  Future<int> importNotes(List<Note> importedNotes) async {
+    var count = 0;
+    for (final imported in importedNotes) {
+      if (notes.any((note) => note.id == imported.id)) continue;
+      notes = [...notes, imported];
+      count++;
+    }
+    return count;
+  }
+
+  @override
+  Future<void> deleteAll() async => notes = [];
 
   @override
   Future<void> updateContent(
