@@ -27,6 +27,7 @@ class TideLocalizations {
       isItalian ? 'Impostazioni aspetto' : 'Appearance settings';
   String get theme => isItalian ? 'Tema' : 'Theme';
   String get exportNotes => isItalian ? 'Esporta note' : 'Export notes';
+  String get importNotes => isItalian ? 'Importa note' : 'Import notes';
   String get quickSubmit => isItalian ? 'Invio rapido' : 'Quick submit';
   String get deleteAllNotes =>
       isItalian ? 'Elimina tutte le note' : 'Delete all notes';
@@ -96,8 +97,13 @@ class TideLocalizations {
     "Couldn't delete notes. Try again." =>
       isItalian ? 'Impossibile eliminare le note. Riprova.' : value,
     'Notes exported.' => isItalian ? 'Note esportate.' : value,
+    'Notes imported.' => isItalian ? 'Note importate.' : value,
+    'No new notes imported.' =>
+      isItalian ? 'Nessuna nuova nota importata.' : value,
     "Couldn't export notes. Try again." =>
       isItalian ? 'Impossibile esportare le note. Riprova.' : value,
+    "Couldn't import notes. Try again." =>
+      isItalian ? 'Impossibile importare le note. Riprova.' : value,
     "Couldn't rescue note." =>
       isItalian ? 'Impossibile riportare a galla la nota.' : value,
     _ => value,

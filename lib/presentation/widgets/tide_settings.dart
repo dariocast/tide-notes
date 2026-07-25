@@ -26,10 +26,12 @@ class TideSettingsButton extends StatelessWidget {
   const TideSettingsButton({
     super.key,
     required this.onExport,
+    required this.onImport,
     required this.onDeleteAll,
   });
 
   final VoidCallback onExport;
+  final VoidCallback onImport;
   final VoidCallback onDeleteAll;
 
   @override
@@ -45,6 +47,7 @@ class TideSettingsButton extends StatelessWidget {
           ? _MacSettingsMenu(
               appearance: appearance,
               onExport: onExport,
+              onImport: onImport,
               onDeleteAll: onDeleteAll,
             )
           : IconButton(
@@ -54,6 +57,7 @@ class TideSettingsButton extends StatelessWidget {
                 context,
                 appearance,
                 onExport,
+                onImport,
                 onDeleteAll,
               ),
             ),
@@ -61,12 +65,13 @@ class TideSettingsButton extends StatelessWidget {
   }
 }
 
-enum _MenuAction { theme, language, submitOnEnter, export, deleteAll }
+enum _MenuAction { theme, language, submitOnEnter, export, import, deleteAll }
 
 Future<void> _showSettingsSheet(
   BuildContext context,
   AppearanceController appearance,
   VoidCallback onExport,
+  VoidCallback onImport,
   VoidCallback onDeleteAll,
 ) => showModalBottomSheet<void>(
   context: context,
@@ -108,6 +113,18 @@ Future<void> _showSettingsSheet(
               ),
             ),
             onTap: () => _showLanguageSheet(sheetContext, appearance),
+          ),
+          ListTile(
+            leading: FaIcon(
+              TideIcons.import,
+              color: Theme.of(sheetContext).iconTheme.color,
+              size: 18,
+            ),
+            title: Text(TideLocalizations.of(sheetContext).importNotes),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              onImport();
+            },
           ),
           ListTile(
             leading: FaIcon(
@@ -258,11 +275,13 @@ class _MacSettingsMenu extends StatelessWidget {
   const _MacSettingsMenu({
     required this.appearance,
     required this.onExport,
+    required this.onImport,
     required this.onDeleteAll,
   });
 
   final AppearanceController appearance;
   final VoidCallback onExport;
+  final VoidCallback onImport;
   final VoidCallback onDeleteAll;
 
   @override
@@ -281,6 +300,8 @@ class _MacSettingsMenu extends StatelessWidget {
             appearance.setSubmitOnEnter(!appearance.submitOnEnter);
           case _MenuAction.export:
             onExport();
+          case _MenuAction.import:
+            onImport();
           case _MenuAction.deleteAll:
             _confirmDelete(context, onDeleteAll);
         }
@@ -324,6 +345,7 @@ class _MacSettingsMenu extends StatelessWidget {
           ),
         ),
         PopupMenuItem(value: _MenuAction.export, child: Text(l10n.exportNotes)),
+        PopupMenuItem(value: _MenuAction.import, child: Text(l10n.importNotes)),
         PopupMenuItem(
           value: _MenuAction.deleteAll,
           child: Text(

@@ -6,6 +6,8 @@ abstract interface class NoteRepository {
 
   Future<void> createNote(Note note);
 
+  Future<int> importNotes(List<Note> notes);
+
   Future<void> deleteAll();
 
   Future<void> updateContent(String id, String content, DateTime updatedAt);

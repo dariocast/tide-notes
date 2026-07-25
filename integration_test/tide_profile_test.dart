@@ -96,6 +96,9 @@ final class _ProfileRepository implements NoteRepository {
   Future<void> createNote(Note note) async {}
 
   @override
+  Future<int> importNotes(List<Note> notes) async => 0;
+
+  @override
   Future<void> deleteAll() async {}
 
   @override

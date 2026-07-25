@@ -13,6 +13,7 @@ class TideHeader extends StatelessWidget {
     required this.noteCount,
     required this.now,
     required this.onExport,
+    required this.onImport,
     required this.onDeleteAll,
     required this.onSearch,
   });
@@ -20,6 +21,7 @@ class TideHeader extends StatelessWidget {
   final int noteCount;
   final DateTime now;
   final VoidCallback onExport;
+  final VoidCallback onImport;
   final VoidCallback onDeleteAll;
   final VoidCallback onSearch;
 
@@ -66,6 +68,7 @@ class TideHeader extends StatelessWidget {
               children: [
                 TideSettingsButton(
                   onExport: onExport,
+                  onImport: onImport,
                   onDeleteAll: onDeleteAll,
                 ),
                 Expanded(
@@ -98,6 +101,7 @@ class TideHeader extends StatelessWidget {
                   children: [
                     TideSettingsButton(
                       onExport: onExport,
+                      onImport: onImport,
                       onDeleteAll: onDeleteAll,
                     ),
                     const SizedBox(width: GSpace.s1),

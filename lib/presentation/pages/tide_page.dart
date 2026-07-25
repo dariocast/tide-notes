@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:file_selector/file_selector.dart';
 
 import '../../design/appearance_controller.dart';
+import '../../core/utils/note_importer.dart';
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
 import '../../design/tide_icons.dart';
@@ -19,16 +21,32 @@ import '../widgets/tide_search_header.dart';
 import '../widgets/tide_shell.dart';
 
 DateTime defaultTideNow() => DateTime.now();
+typedef PickTideImportFile = Future<List<int>?> Function();
+
+Future<List<int>?> defaultPickTideImportFile() async {
+  final file = await openFile(
+    acceptedTypeGroups: const [
+      XTypeGroup(
+        label: 'Tide notes',
+        extensions: ['tide', 'json'],
+        mimeTypes: ['application/json'],
+      ),
+    ],
+  );
+  return file?.readAsBytes();
+}
 
 class TidePage extends StatefulWidget {
   const TidePage({
     super.key,
     this.haptic = defaultTideHaptic,
     this.now = defaultTideNow,
+    this.pickImportFile = defaultPickTideImportFile,
   });
 
   final VoidCallback haptic;
   final DateTime Function() now;
+  final PickTideImportFile pickImportFile;
 
   @override
   State<TidePage> createState() => _TidePageState();
@@ -74,6 +92,21 @@ class _TidePageState extends State<TidePage> {
     setState(() => _searching = false);
   }
 
+  Future<void> _importNotes() async {
+    try {
+      final bytes = await widget.pickImportFile();
+      if (bytes == null || !mounted) return;
+      final notes = const NoteImporter().parse(bytes);
+      if (notes.isNotEmpty) {
+        context.read<TideBloc>().add(NotesImportRequested(notes));
+      }
+    } on FormatException {
+      if (mounted) context.read<TideBloc>().add(const NotesImportFailed());
+    } catch (_) {
+      if (mounted) context.read<TideBloc>().add(const NotesImportFailed());
+    }
+  }
+
   Widget _buildHeader(BuildContext context, TideState state) {
     final header = _searching
         ? TideSearchHeader(
@@ -91,6 +124,7 @@ class _TidePageState extends State<TidePage> {
             onSearch: _openSearch,
             onExport: () =>
                 context.read<TideBloc>().add(NotesExportRequested(state.notes)),
+            onImport: _importNotes,
             onDeleteAll: () =>
                 context.read<TideBloc>().add(const NotesDeleteAllRequested()),
           );

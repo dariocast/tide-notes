@@ -11,6 +11,7 @@ abstract final class TideIcons {
   static const language = FontAwesomeIcons.language;
   static const export = FontAwesomeIcons.arrowUpFromBracket;
   static const deleteAll = FontAwesomeIcons.trashCan;
+  static const import = FontAwesomeIcons.fileImport;
   static const next = FontAwesomeIcons.angleRight;
   static const check = FontAwesomeIcons.check;
   static const warning = FontAwesomeIcons.triangleExclamation;

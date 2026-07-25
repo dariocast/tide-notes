@@ -38,6 +38,22 @@ final class NotesExportRequested extends TideEvent {
   List<Object> get props => [notes];
 }
 
+final class NotesImportRequested extends TideEvent {
+  const NotesImportRequested(this.notes);
+
+  final List<Note> notes;
+
+  @override
+  List<Object> get props => [notes];
+}
+
+final class NotesImportFailed extends TideEvent {
+  const NotesImportFailed();
+
+  @override
+  List<Object> get props => [];
+}
+
 final class NoteEditRequested extends TideEvent {
   const NoteEditRequested(this.id, this.content);
 

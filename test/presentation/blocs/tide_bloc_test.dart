@@ -10,6 +10,7 @@ import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
 import 'package:tide/domain/usecases/delete_all_notes.dart';
+import 'package:tide/domain/usecases/import_notes.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
@@ -39,6 +40,7 @@ void main() {
       rescueNote: RescueNote(repository, now: () => now),
       undoRescue: UndoRescue(repository),
       deleteAllNotes: DeleteAllNotes(repository),
+      importNotes: ImportNotes(repository),
       editDebounce: editDebounce,
     );
     return bloc;
@@ -124,6 +126,20 @@ void main() {
         'Notes exported.',
       ),
     ],
+  );
+
+  blocTest<TideBloc, TideState>(
+    'import persists notes and emits confirmation message',
+    build: () => buildBloc(),
+    act: (bloc) => bloc.add(NotesImportRequested([note])),
+    expect: () => [
+      isA<TideState>().having(
+        (state) => state.message,
+        'message',
+        'Notes imported.',
+      ),
+    ],
+    verify: (_) => expect(repository.notes, [note]),
   );
 
   blocTest<TideBloc, TideState>(
@@ -228,6 +244,17 @@ final class FakeNoteRepository implements NoteRepository {
   Future<void> createNote(Note note) async {
     if (failAppend) throw StateError('failed');
     notes = [...notes, note];
+  }
+
+  @override
+  Future<int> importNotes(List<Note> importedNotes) async {
+    var count = 0;
+    for (final imported in importedNotes) {
+      if (notes.any((note) => note.id == imported.id)) continue;
+      notes = [...notes, imported];
+      count++;
+    }
+    return count;
   }
 
   @override

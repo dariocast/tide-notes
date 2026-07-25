@@ -96,6 +96,9 @@ final class FakeNoteRepository implements NoteRepository {
   }
 
   @override
+  Future<int> importNotes(List<Note> notes) async => 0;
+
+  @override
   Future<void> deleteAll() async {}
 
   @override

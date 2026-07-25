@@ -704,6 +704,9 @@ final class PageRepository implements NoteRepository {
   }
 
   @override
+  Future<int> importNotes(List<Note> notes) async => 0;
+
+  @override
   Future<void> deleteAll() async => deleteAllCalls++;
 
   @override
