@@ -21,6 +21,9 @@ import '../../domain/usecases/watch_notes.dart';
 import 'tide_event.dart';
 import 'tide_state.dart';
 
+/// `base`, not `final`: `test/support/stub_tide_bloc.dart`'s `StubTideBloc`
+/// extends this class to stub out real note storage in page-level widget
+/// tests. Reverting to `final` would silently break that shared test helper.
 base class TideBloc extends Bloc<TideEvent, TideState> {
   TideBloc({
     required WatchNotes watchNotes,
