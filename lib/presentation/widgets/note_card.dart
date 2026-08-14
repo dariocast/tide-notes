@@ -57,6 +57,11 @@ class NoteCard extends StatefulWidget {
   final VoidCallback haptic;
   final DateTime Function() now;
   final ValueChanged<bool>? onEditingChanged;
+
+  /// Only highlights matches on the note's first line (the line
+  /// [PrefixText] renders) — a note that matches the search query only in
+  /// its markdown body will still appear in results but without a visible
+  /// highlight anywhere on the card.
   final String? highlightQuery;
 
   @override
