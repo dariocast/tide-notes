@@ -21,7 +21,7 @@ import '../../domain/usecases/watch_notes.dart';
 import 'tide_event.dart';
 import 'tide_state.dart';
 
-final class TideBloc extends Bloc<TideEvent, TideState> {
+base class TideBloc extends Bloc<TideEvent, TideState> {
   TideBloc({
     required WatchNotes watchNotes,
     required AppendNote appendNote,

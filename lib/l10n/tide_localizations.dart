@@ -64,6 +64,12 @@ class TideLocalizations {
       isItalian ? 'Nessuna nota trovata.' : 'No notes found.';
   String get noSearchResultsBody =>
       isItalian ? 'Prova con una ricerca diversa.' : 'Try a different search.';
+  String get archiveTitle => isItalian ? 'Archivio' : 'Archive';
+  String get archiveEmptyTitle =>
+      isItalian ? 'L\'archivio è vuoto.' : 'Archive is empty.';
+  String get archiveEmptyBody => isItalian
+      ? 'Le note che archivi appariranno qui.'
+      : 'Notes you archive will appear here.';
   String relativeSurfacedAge(DateTime surfacedAt, DateTime now) {
     final difference = now.difference(surfacedAt);
     if (difference.isNegative || difference.inMinutes < 1) {
