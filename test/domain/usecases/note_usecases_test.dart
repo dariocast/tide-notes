@@ -114,8 +114,11 @@ void main() {
     final receipt = await deleteNote('n1');
 
     expect(receipt!.noteId, 'n1');
+    expect(repository.seeded.single.deletedAt, now);
 
     await restoreFromTrash('n1');
+
+    expect(repository.seeded.single.deletedAt, isNull);
   });
 
   test(
@@ -252,7 +255,18 @@ final class FakeNoteRepository implements NoteRepository {
   }
 
   @override
-  Future<void> restoreFromTrash(String id) async {}
+  Future<void> restoreFromTrash(String id) async {
+    final index = seeded.indexWhere((note) => note.id == id);
+    if (index == -1) return;
+    seeded[index] = Note(
+      id: seeded[index].id,
+      content: seeded[index].content,
+      createdAt: seeded[index].createdAt,
+      updatedAt: seeded[index].updatedAt,
+      surfacedAt: seeded[index].surfacedAt,
+      rescueCount: seeded[index].rescueCount,
+    );
+  }
 
   @override
   Future<void> permanentlyDelete(String id) async {}
