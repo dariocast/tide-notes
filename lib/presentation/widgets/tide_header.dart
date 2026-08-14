@@ -16,6 +16,10 @@ class TideHeader extends StatelessWidget {
     required this.onImport,
     required this.onDeleteAll,
     required this.onSearch,
+    required this.onOpenArchive,
+    required this.onOpenDeletedNotes,
+    required this.onOpenStats,
+    required this.onOpenTutorial,
   });
 
   final int noteCount;
@@ -24,6 +28,10 @@ class TideHeader extends StatelessWidget {
   final VoidCallback onImport;
   final VoidCallback onDeleteAll;
   final VoidCallback onSearch;
+  final VoidCallback onOpenArchive;
+  final VoidCallback onOpenDeletedNotes;
+  final VoidCallback onOpenStats;
+  final VoidCallback onOpenTutorial;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +78,10 @@ class TideHeader extends StatelessWidget {
                   onExport: onExport,
                   onImport: onImport,
                   onDeleteAll: onDeleteAll,
+                  onOpenArchive: onOpenArchive,
+                  onOpenDeletedNotes: onOpenDeletedNotes,
+                  onOpenStats: onOpenStats,
+                  onOpenTutorial: onOpenTutorial,
                 ),
                 Expanded(
                   child: Column(
@@ -103,6 +115,10 @@ class TideHeader extends StatelessWidget {
                       onExport: onExport,
                       onImport: onImport,
                       onDeleteAll: onDeleteAll,
+                      onOpenArchive: onOpenArchive,
+                      onOpenDeletedNotes: onOpenDeletedNotes,
+                      onOpenStats: onOpenStats,
+                      onOpenTutorial: onOpenTutorial,
                     ),
                     const SizedBox(width: GSpace.s1),
                     searchButton,

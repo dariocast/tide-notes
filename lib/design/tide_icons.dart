@@ -21,4 +21,6 @@ abstract final class TideIcons {
   static const archive = FontAwesomeIcons.boxArchive;
   static const share = FontAwesomeIcons.shareNodes;
   static const copy = FontAwesomeIcons.copy;
+  static const stats = FontAwesomeIcons.chartSimple;
+  static const tutorial = FontAwesomeIcons.circleQuestion;
 }

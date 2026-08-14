@@ -54,4 +54,16 @@ void main() {
       expect(restored.locale, const Locale('it'));
     },
   );
+
+  test('appearance restores and persists includeArchivedInSearch', () async {
+    SharedPreferences.setMockInitialValues({});
+    final controller = await AppearanceController.load();
+    expect(controller.includeArchivedInSearch, isTrue);
+
+    await controller.setIncludeArchivedInSearch(false);
+    expect(
+      (await AppearanceController.load()).includeArchivedInSearch,
+      isFalse,
+    );
+  });
 }

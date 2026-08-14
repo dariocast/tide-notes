@@ -105,6 +105,14 @@ class TideLocalizations {
       isItalian ? 'Come funziona Tide' : 'How Tide Works';
   String get howTideWorks =>
       isItalian ? 'Come funziona Tide' : 'How Tide Works';
+  String get settingsContent => isItalian ? 'Contenuti' : 'Content';
+  String get settingsData => isItalian ? 'Dati' : 'Data';
+  String get settingsEditor => isItalian ? 'Editor' : 'Editor';
+  String get settingsAppearance => isItalian ? 'Aspetto' : 'Appearance';
+  String get settingsSearch => isItalian ? 'Ricerca' : 'Search';
+  String get includeArchivedInSearch => isItalian
+      ? 'Includi archiviate nella ricerca'
+      : 'Include archived notes in search';
   String relativeSurfacedAge(DateTime surfacedAt, DateTime now) {
     final difference = now.difference(surfacedAt);
     if (difference.isNegative || difference.inMinutes < 1) {

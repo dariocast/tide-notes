@@ -22,6 +22,10 @@ import '../widgets/note_stream.dart';
 import '../widgets/tide_header.dart';
 import '../widgets/tide_search_header.dart';
 import '../widgets/tide_shell.dart';
+import 'archive_page.dart';
+import 'deleted_notes_page.dart';
+import 'tide_stats_page.dart';
+import 'tide_tutorial_page.dart';
 
 DateTime defaultTideNow() => DateTime.now();
 typedef PickTideImportFile = Future<List<int>?> Function();
@@ -161,6 +165,20 @@ class _TidePageState extends State<TidePage> {
             onImport: _importNotes,
             onDeleteAll: () =>
                 context.read<TideBloc>().add(const NotesDeleteAllRequested()),
+            onOpenArchive: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const ArchivePage()),
+            ),
+            onOpenDeletedNotes: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const DeletedNotesPage()),
+            ),
+            onOpenStats: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TideStatsPage(now: widget.now),
+              ),
+            ),
+            onOpenTutorial: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const TideTutorialPage()),
+            ),
           );
     if (context.motion.reduceMotion) return header;
 

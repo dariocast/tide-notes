@@ -29,6 +29,7 @@ import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
 import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
+import 'package:tide/presentation/pages/archive_page.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
 import 'package:tide/presentation/widgets/note_composer.dart';
@@ -69,18 +70,23 @@ void main() {
       await repository.dispose();
     });
 
-    Widget page = BlocProvider.value(
-      value: bloc,
-      child: now == null ? const TidePage() : TidePage(now: now),
-    );
+    Widget page = now == null ? const TidePage() : TidePage(now: now);
     if (theme != null) page = Theme(data: theme, child: page);
     if (mediaQuery != null) {
       page = MediaQuery(data: mediaQuery, child: page);
     }
+    // BlocProvider wraps TideApp (not just the home page) so that pages
+    // pushed via Navigator.push — which mount as siblings of the initial
+    // route under the Navigator's Overlay, not as descendants of it — can
+    // still find TideBloc via context.read/BlocBuilder. This mirrors
+    // main.dart's TideBootstrap, where BlocProvider wraps TideApp itself.
     await tester.pumpWidget(
-      theme == null
-          ? TideApp(home: page, appearance: appearance)
-          : MaterialApp(theme: theme, home: page),
+      BlocProvider.value(
+        value: bloc,
+        child: theme == null
+            ? TideApp(home: page, appearance: appearance)
+            : MaterialApp(theme: theme, home: page),
+      ),
     );
     if (notes.isNotEmpty) {
       bloc.add(const TideStarted());
@@ -485,6 +491,8 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Theme'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Theme'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Abyss'));
@@ -493,11 +501,26 @@ void main() {
     expect(appearance.selection, TideThemeSelection.abyss);
   });
 
+  testWidgets('tapping Archive in settings pushes the Archive page', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Archive'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ArchivePage), findsOneWidget);
+  });
+
   testWidgets('language setting switches the app to Italian', (tester) async {
     final appearance = AppearanceController.inMemory();
     await pumpPage(tester, appearance: appearance);
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Language'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Language'));
     await tester.pumpAndSettle();
@@ -515,6 +538,8 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Delete all notes'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Delete all notes'));
     await tester.pumpAndSettle();
 
@@ -524,6 +549,8 @@ void main() {
     expect(repository.deleteAllCalls, 0);
 
     await tester.tap(find.bySemanticsLabel('Appearance settings'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Delete all notes'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete all notes'));
     await tester.pumpAndSettle();

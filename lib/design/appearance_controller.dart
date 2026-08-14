@@ -15,19 +15,23 @@ class AppearanceController extends ChangeNotifier {
     this._selection,
     this._submitOnEnter,
     this._language,
+    this._includeArchivedInSearch,
   );
 
   static const _themeKey = 'tide_theme';
   static const _submitOnEnterKey = 'tide_submit_on_enter';
   static const _languageKey = 'tide_language';
+  static const _includeArchivedInSearchKey = 'tide_include_archived_in_search';
   final SharedPreferences? _preferences;
   TideThemeSelection _selection;
   bool _submitOnEnter;
   TideLanguageSelection _language;
+  bool _includeArchivedInSearch;
 
   TideThemeSelection get selection => _selection;
   bool get submitOnEnter => _submitOnEnter;
   TideLanguageSelection get language => _language;
+  bool get includeArchivedInSearch => _includeArchivedInSearch;
   Locale? get locale => switch (_language) {
     TideLanguageSelection.system => null,
     TideLanguageSelection.italian => const Locale('it'),
@@ -39,6 +43,8 @@ class AppearanceController extends ChangeNotifier {
       final preferences = await SharedPreferences.getInstance();
       final stored = preferences.getString(_themeKey);
       final submitOnEnter = preferences.getBool(_submitOnEnterKey) ?? false;
+      final includeArchivedInSearch =
+          preferences.getBool(_includeArchivedInSearchKey) ?? true;
       final storedLanguage = preferences.getString(_languageKey);
       final language = TideLanguageSelection.values.firstWhere(
         (value) => value.name == storedLanguage,
@@ -53,6 +59,7 @@ class AppearanceController extends ChangeNotifier {
         selection,
         submitOnEnter,
         language,
+        includeArchivedInSearch,
       );
     } catch (_) {
       return AppearanceController.inMemory();
@@ -63,7 +70,14 @@ class AppearanceController extends ChangeNotifier {
     TideThemeSelection selection = TideThemeSelection.system,
     bool submitOnEnter = false,
     TideLanguageSelection language = TideLanguageSelection.system,
-  }) => AppearanceController._(null, selection, submitOnEnter, language);
+    bool includeArchivedInSearch = true,
+  }) => AppearanceController._(
+    null,
+    selection,
+    submitOnEnter,
+    language,
+    includeArchivedInSearch,
+  );
 
   Future<void> setSelection(TideThemeSelection value) async {
     if (_selection == value) return;
@@ -89,6 +103,15 @@ class AppearanceController extends ChangeNotifier {
     notifyListeners();
     try {
       await _preferences?.setString(_languageKey, value.name);
+    } catch (_) {}
+  }
+
+  Future<void> setIncludeArchivedInSearch(bool value) async {
+    if (_includeArchivedInSearch == value) return;
+    _includeArchivedInSearch = value;
+    notifyListeners();
+    try {
+      await _preferences?.setBool(_includeArchivedInSearchKey, value);
     } catch (_) {}
   }
 }
