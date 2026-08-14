@@ -70,6 +70,18 @@ class TideLocalizations {
   String get archiveEmptyBody => isItalian
       ? 'Le note che archivi appariranno qui.'
       : 'Notes you archive will appear here.';
+  String get deletedNotesTitle => isItalian ? 'Cestino' : 'Deleted Notes';
+  String get deletedNotesEmptyTitle =>
+      isItalian ? 'Il cestino è vuoto.' : 'Deleted Notes is empty.';
+  String get deletedNotesEmptyBody => isItalian
+      ? 'Le note che elimini appariranno qui.'
+      : 'Notes you delete will appear here.';
+  String get emptyTrash => isItalian ? 'Svuota cestino' : 'Empty trash';
+  String get emptyTrashTitle =>
+      isItalian ? 'Svuotare il cestino?' : 'Empty the trash?';
+  String get emptyTrashBody => isItalian
+      ? 'Questa azione eliminerà definitivamente tutte le note nel cestino.'
+      : 'This will permanently delete every note in the trash.';
   String relativeSurfacedAge(DateTime surfacedAt, DateTime now) {
     final difference = now.difference(surfacedAt);
     if (difference.isNegative || difference.inMinutes < 1) {
