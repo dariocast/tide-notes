@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
@@ -275,4 +276,47 @@ void main() {
       expect(editing, isFalse);
     },
   );
+
+  testWidgets('renders lines after the first as markdown', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: title\n**bold body**'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+          ),
+        ),
+      ),
+    );
+
+    // flutter_markdown_plus renders inline text via Text.rich, so the
+    // resolved style (including the bold weight from the markdown style
+    // sheet's `strong` style) lives on the underlying TextSpan rather than
+    // on Text.style itself.
+    final rendered = tester.widget<Text>(find.text('bold body'));
+    expect(rendered.textSpan?.style?.fontWeight, FontWeight.w700);
+  });
+
+  testWidgets('single-line notes render exactly as before, no markdown body', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: single line'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(MarkdownBody), findsNothing);
+  });
 }

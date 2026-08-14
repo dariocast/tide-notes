@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
 import '../../design/tide_icons.dart';
+import '../../design/tide_markdown.dart';
 import '../../core/utils/note_metadata_formatter.dart';
 import '../../domain/entities/note.dart';
 import '../../l10n/tide_localizations.dart';
@@ -115,6 +117,8 @@ class _NoteCardState extends State<NoteCard> {
       ).formatMediumDate(widget.note.surfacedAt),
       if (rescue.isNotEmpty) rescue,
     ].join(' • ');
+    final lines = widget.note.content.split('\n');
+    final markdownBody = lines.length > 1 ? lines.skip(1).join('\n') : null;
 
     final child = AnimatedContainer(
       key: const ValueKey('note-row'),
@@ -156,8 +160,18 @@ class _NoteCardState extends State<NoteCard> {
                     onTapOutside: (_) => _focusNode.unfocus(),
                     onChanged: widget.onChanged,
                   )
-                else
+                else ...[
                   PrefixText(content: widget.note.content, index: widget.index),
+                  if (markdownBody != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: GSpace.s1),
+                      child: MarkdownBody(
+                        data: markdownBody,
+                        styleSheet: tideMarkdownStyleSheet(context),
+                        shrinkWrap: true,
+                      ),
+                    ),
+                ],
                 const SizedBox(height: GSpace.s1),
                 Text(metadata, style: Theme.of(context).textTheme.bodySmall),
               ],
