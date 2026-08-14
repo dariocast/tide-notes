@@ -69,10 +69,7 @@ class _TideTutorialPageState extends State<TideTutorialPage> {
           key: ValueKey('tutorial-note-$index'),
           child: NoteCard(
             note: _demoNotes[index],
-            // Never 0: keeps `rescueEnabled` demonstrable for every row
-            // without relying on the real stream's "index 0 can't rescue"
-            // rule, which doesn't apply to this static demo list.
-            index: index + 1,
+            index: index,
             rescueEnabled: true,
             onArchive: () {},
             onDelete: () {},
