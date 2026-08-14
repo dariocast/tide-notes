@@ -82,6 +82,25 @@ class TideLocalizations {
   String get emptyTrashBody => isItalian
       ? 'Questa azione eliminerà definitivamente tutte le note nel cestino.'
       : 'This will permanently delete every note in the trash.';
+  String get statsTitle => isItalian ? 'Statistiche Tide' : 'Tide Stats';
+  String get statsTotalNotes => isItalian ? 'Note totali' : 'Total notes';
+  String get statsNotesPerDay => isItalian ? 'Note al giorno' : 'Notes per day';
+  String get statsAverageRescues =>
+      isItalian ? 'Emersioni medie' : 'Average rescues';
+  String get statsRescuesPerDay =>
+      isItalian ? 'Emersioni al giorno' : 'Rescues per day';
+  String get statsLongestNote =>
+      isItalian ? 'Nota più lunga (caratteri)' : 'Longest note (characters)';
+  String get statsMostRescued =>
+      isItalian ? 'Più riportata a galla' : 'Most rescued';
+  String get statsFirstNote => isItalian ? 'Prima nota' : 'First note';
+  String get statsTotalCharacters =>
+      isItalian ? 'Caratteri totali' : 'Total characters';
+  String get statsWordDistribution =>
+      isItalian ? 'Distribuzione lunghezza parole' : 'Word count distribution';
+  String get statsComputedLocally => isItalian
+      ? 'Statistiche calcolate localmente.'
+      : 'Stats are computed locally.';
   String relativeSurfacedAge(DateTime surfacedAt, DateTime now) {
     final difference = now.difference(surfacedAt);
     if (difference.isNegative || difference.inMinutes < 1) {
