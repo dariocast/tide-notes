@@ -18,4 +18,7 @@ abstract final class TideIcons {
   static const search = FontAwesomeIcons.magnifyingGlass;
   static const clearSearch = FontAwesomeIcons.xmark;
   static const paste = FontAwesomeIcons.paste;
+  static const archive = FontAwesomeIcons.boxArchive;
+  static const share = FontAwesomeIcons.shareNodes;
+  static const copy = FontAwesomeIcons.copy;
 }

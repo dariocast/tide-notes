@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:file_selector/file_selector.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../design/appearance_controller.dart';
 import '../../core/utils/note_importer.dart';
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
 import '../../design/tide_icons.dart';
+import '../../domain/entities/note.dart';
 import '../../l10n/tide_localizations.dart';
 import '../blocs/tide_bloc.dart';
 import '../blocs/tide_event.dart';
@@ -107,6 +110,37 @@ class _TidePageState extends State<TidePage> {
     }
   }
 
+  Note? _findNote(String id, TideState state) {
+    final matches = [
+      ...state.notes,
+      ...state.archivedNotes,
+    ].where((note) => note.id == id);
+    return matches.isEmpty ? null : matches.first;
+  }
+
+  Future<void> _shareNote(String id, TideState state) async {
+    final note = _findNote(id, state);
+    if (note == null) return;
+    await SharePlus.instance.share(ShareParams(text: note.content));
+  }
+
+  Future<void> _copyNote(
+    String id,
+    TideState state,
+    BuildContext context,
+  ) async {
+    final note = _findNote(id, state);
+    if (note == null) return;
+    await Clipboard.setData(ClipboardData(text: note.content));
+    if (!context.mounted) return;
+    context.read<TideBloc>().add(const TideMessageAcknowledged());
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(TideLocalizations.of(context).noteCopied)),
+      );
+  }
+
   Widget _buildHeader(BuildContext context, TideState state) {
     final header = _searching
         ? TideSearchHeader(
@@ -148,7 +182,9 @@ class _TidePageState extends State<TidePage> {
       final l10n = TideLocalizations.of(context);
       final message = state.message;
       if (message == null) return;
-      if (message == 'Rescued') {
+      if (message == 'Rescued' ||
+          message == 'Archived' ||
+          message == 'Deleted') {
         context.read<TideBloc>().add(const TideMessageAcknowledged());
         return;
       }
@@ -201,14 +237,31 @@ class _TidePageState extends State<TidePage> {
                 busyNoteIds: state.busyNoteIds,
                 haptic: widget.haptic,
                 now: widget.now,
-                undoNoteId: state.rescueReceipt?.noteId,
-                onUndo: () =>
-                    context.read<TideBloc>().add(const RescueUndoRequested()),
+                undoNoteId:
+                    state.rescueReceipt?.noteId ??
+                    state.archiveReceipt?.noteId ??
+                    state.deleteReceipt?.noteId,
+                onUndo: () {
+                  final bloc = context.read<TideBloc>();
+                  if (state.rescueReceipt != null) {
+                    bloc.add(const RescueUndoRequested());
+                  } else if (state.archiveReceipt != null) {
+                    bloc.add(const ArchiveUndoRequested());
+                  } else if (state.deleteReceipt != null) {
+                    bloc.add(const DeleteUndoRequested());
+                  }
+                },
                 onChanged: (edit) => context.read<TideBloc>().add(
                   NoteEditRequested(edit.id, edit.content),
                 ),
                 onRescue: (id) =>
                     context.read<TideBloc>().add(NoteRescueRequested(id)),
+                onArchive: (id) =>
+                    context.read<TideBloc>().add(NoteArchiveRequested(id)),
+                onDelete: (id) =>
+                    context.read<TideBloc>().add(NoteDeleteRequested(id)),
+                onShare: (id) => _shareNote(id, state),
+                onCopy: (id) => _copyNote(id, state, context),
               ),
             ),
           ),

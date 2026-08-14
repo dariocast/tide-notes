@@ -12,6 +12,10 @@ class NoteStream extends StatelessWidget {
     required this.busyNoteIds,
     required this.onChanged,
     required this.onRescue,
+    this.onArchive,
+    this.onDelete,
+    this.onShare,
+    this.onCopy,
     this.undoNoteId,
     this.onUndo,
     this.showNoSearchResults = false,
@@ -23,6 +27,10 @@ class NoteStream extends StatelessWidget {
   final Set<String> busyNoteIds;
   final ValueChanged<NoteEdit> onChanged;
   final ValueChanged<String> onRescue;
+  final ValueChanged<String>? onArchive;
+  final ValueChanged<String>? onDelete;
+  final ValueChanged<String>? onShare;
+  final ValueChanged<String>? onCopy;
   final String? undoNoteId;
   final VoidCallback? onUndo;
   final bool showNoSearchResults;
@@ -55,6 +63,10 @@ class NoteStream extends StatelessWidget {
             rescueEnabled: index > 0,
             onChanged: (content) => onChanged(NoteEdit(note.id, content)),
             onRescue: () => onRescue(note.id),
+            onArchive: onArchive == null ? null : () => onArchive!(note.id),
+            onDelete: onDelete == null ? null : () => onDelete!(note.id),
+            onShare: onShare == null ? null : () => onShare!(note.id),
+            onCopy: onCopy == null ? null : () => onCopy!(note.id),
             onUndo: note.id == undoNoteId ? onUndo : null,
             haptic: haptic,
             now: now,

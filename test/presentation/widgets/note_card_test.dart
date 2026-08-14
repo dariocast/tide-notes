@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tide/design/design_tokens.dart';
 import 'package:tide/design/theme.dart';
@@ -182,13 +183,13 @@ void main() {
       );
 
       expect(find.byTooltip('Rescue note'), findsNothing);
-      expect(find.byType(Dismissible), findsOneWidget);
+      expect(find.byType(Slidable), findsOneWidget);
 
       await tester.tap(find.byType(PrefixText));
       await tester.pump();
 
       expect(find.byTooltip('Rescue note'), findsOneWidget);
-      expect(find.byType(Dismissible), findsOneWidget);
+      expect(find.byType(Slidable), findsOneWidget);
     },
   );
 
@@ -341,5 +342,106 @@ void main() {
     );
 
     expect(find.byType(MarkdownBody), findsNothing);
+  });
+
+  testWidgets('swipe-left reveals Archive, Delete, Share, and Copy', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: swipe me'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+            onArchive: () {},
+            onDelete: () {},
+            onShare: () {},
+            onCopy: () {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byKey(const ValueKey('note-row')),
+      const Offset(-400, 0),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Archive'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
+    expect(find.text('Share'), findsOneWidget);
+    expect(find.text('Copy'), findsOneWidget);
+  });
+
+  testWidgets('tapping Archive in the revealed panel calls onArchive', (
+    tester,
+  ) async {
+    var archived = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: swipe me'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+            onArchive: () => archived = true,
+            onDelete: () {},
+            onShare: () {},
+            onCopy: () {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.drag(
+      find.byKey(const ValueKey('note-row')),
+      const Offset(-400, 0),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Archive'));
+    await tester.pumpAndSettle();
+
+    expect(archived, isTrue);
+  });
+
+  testWidgets('swipe-right still rescues exactly as before', (tester) async {
+    var rescued = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: swipe me'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () => rescued = true,
+          ),
+        ),
+      ),
+    );
+
+    // A timed drag (rather than a plain instantaneous tester.drag) is
+    // required here: flutter_slidable only mounts DismissiblePane -- the
+    // widget whose initState registers the listener that makes
+    // isDismissibleReady true -- once a frame is pumped after the ratio
+    // exceeds the pane's extentRatio. A plain tester.drag delivers its
+    // whole down/move/up sequence with no frame pumped in between, so
+    // isDismissibleReady would still read false at release and the
+    // gesture would silently fall back to "open the pane" instead of
+    // dismissing -- unlike real, frame-by-frame finger drags.
+    await tester.timedDrag(
+      find.byKey(const ValueKey('note-row')),
+      const Offset(400, 0),
+      const Duration(milliseconds: 400),
+    );
+    await tester.pumpAndSettle();
+
+    expect(rescued, isTrue);
   });
 }

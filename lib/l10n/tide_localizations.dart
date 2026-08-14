@@ -47,6 +47,11 @@ class TideLocalizations {
   String get versionLabel => isItalian ? 'Versione' : 'Version';
   String get undoRescue => isItalian ? 'Annulla emersione' : 'Undo rescue';
   String get rescueNote => isItalian ? 'Riporta a galla' : 'Rescue note';
+  String get archiveNote => isItalian ? 'Archivia' : 'Archive';
+  String get deleteNote => isItalian ? 'Elimina' : 'Delete';
+  String get shareNote => isItalian ? 'Condividi' : 'Share';
+  String get copyNote => isItalian ? 'Copia' : 'Copy';
+  String get noteCopied => isItalian ? 'Nota copiata.' : 'Note copied.';
   String get editNote => isItalian ? 'Modifica nota' : 'Edit note';
   String get searchNotes => isItalian ? 'Cerca note' : 'Search notes';
   String get searchHint => isItalian ? 'Cerca nelle note…' : 'Search notes…';
@@ -123,6 +128,7 @@ class TideLocalizations {
       isItalian ? 'Impossibile importare le note. Riprova.' : value,
     "Couldn't rescue note." =>
       isItalian ? 'Impossibile riportare a galla la nota.' : value,
+    'Note copied.' => isItalian ? 'Nota copiata.' : value,
     _ => value,
   };
 }

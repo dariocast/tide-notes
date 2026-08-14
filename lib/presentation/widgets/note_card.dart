@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../design/design_helpers.dart';
 import '../../design/design_tokens.dart';
@@ -28,6 +29,10 @@ class NoteCard extends StatefulWidget {
     required this.index,
     required this.onChanged,
     required this.onRescue,
+    this.onArchive,
+    this.onDelete,
+    this.onShare,
+    this.onCopy,
     this.onUndo,
     this.busy = false,
     this.rescueEnabled = true,
@@ -42,6 +47,10 @@ class NoteCard extends StatefulWidget {
   final bool rescueEnabled;
   final ValueChanged<String> onChanged;
   final VoidCallback onRescue;
+  final VoidCallback? onArchive;
+  final VoidCallback? onDelete;
+  final VoidCallback? onShare;
+  final VoidCallback? onCopy;
   final VoidCallback? onUndo;
   final VoidCallback haptic;
   final DateTime Function() now;
@@ -209,6 +218,41 @@ class _NoteCardState extends State<NoteCard> {
       return KeyedSubtree(key: ValueKey(widget.note.id), child: interactive);
     }
 
+    final actions = <Widget>[
+      if (widget.onArchive != null)
+        SlidableAction(
+          onPressed: (_) => widget.onArchive!(),
+          backgroundColor: g.textMuted.withValues(alpha: 0.16),
+          foregroundColor: g.textMuted,
+          icon: TideIcons.archive.data,
+          label: l10n.archiveNote,
+        ),
+      if (widget.onDelete != null)
+        SlidableAction(
+          onPressed: (_) => widget.onDelete!(),
+          backgroundColor: g.dangerSoft,
+          foregroundColor: g.danger,
+          icon: TideIcons.deleteAll.data,
+          label: l10n.deleteNote,
+        ),
+      if (widget.onShare != null)
+        SlidableAction(
+          onPressed: (_) => widget.onShare!(),
+          backgroundColor: g.accentSubtle,
+          foregroundColor: g.accent,
+          icon: TideIcons.share.data,
+          label: l10n.shareNote,
+        ),
+      if (widget.onCopy != null)
+        SlidableAction(
+          onPressed: (_) => widget.onCopy!(),
+          backgroundColor: g.accentSubtle.withValues(alpha: 0.6),
+          foregroundColor: g.accentMuted,
+          icon: TideIcons.copy.data,
+          label: l10n.copyNote,
+        ),
+    ];
+
     return Semantics(
       label: l10n.rescueNote,
       hint: widget.note.content,
@@ -216,24 +260,57 @@ class _NoteCardState extends State<NoteCard> {
       customSemanticsActions: {
         CustomSemanticsAction(label: l10n.rescueNote): widget.onRescue,
       },
-      child: Dismissible(
+      child: Slidable(
         key: ValueKey(widget.note.id),
-        direction: DismissDirection.startToEnd,
-        background: DecoratedBox(
-          decoration: BoxDecoration(color: g.rescueSoft),
-          child: Padding(
-            padding: EdgeInsets.only(left: compact ? GSpace.s4 : GSpace.s6),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FaIcon(TideIcons.surface, color: g.rescue, size: 20),
-            ),
+        startActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.01,
+          dismissible: DismissiblePane(
+            // Matches Dismissible's own default dismissThreshold (0.4) so
+            // the swipe-right rescue gesture keeps its exact old feel.
+            dismissThreshold: 0.4,
+            // DismissiblePane's own default (closeOnCancel: false) leaves
+            // the pane sitting open at whatever ratio it was dragged to
+            // once confirmDismiss returns false. Since confirmDismiss
+            // always returns false here (the side effect already
+            // happened; nothing should actually be removed from the
+            // list), closeOnCancel must be true so the row always
+            // springs back closed, matching Dismissible's old contract.
+            closeOnCancel: true,
+            confirmDismiss: () async {
+              widget.haptic();
+              widget.onRescue();
+              return false;
+            },
+            onDismissed: () {},
           ),
+          children: [
+            // Wrapped in Expanded: flutter_slidable's motion widgets lay
+            // out `children` in a Flex (both the ScrollMotion reveal and
+            // the DismissiblePane's InversedDrawerMotion during the actual
+            // dismiss animation), and require a non-zero flex factor on
+            // each child -- a bare, unconstrained DecoratedBox overflows
+            // the reveal's Flex and crashes the dismiss animation's
+            // FlexExitTransition.
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: g.rescueSoft),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: compact ? GSpace.s4 : GSpace.s6,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FaIcon(TideIcons.surface, color: g.rescue, size: 20),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        confirmDismiss: (_) async {
-          widget.haptic();
-          widget.onRescue();
-          return false;
-        },
+        endActionPane: actions.isEmpty
+            ? null
+            : ActionPane(motion: const ScrollMotion(), children: actions),
         child: interactive,
       ),
     );

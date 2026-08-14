@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:tide/app.dart';
 import 'package:tide/design/design_helpers.dart';
 import 'package:tide/design/design_tokens.dart';
@@ -88,7 +89,7 @@ void main() {
   testWidgets('only notes below top can be rescued', (tester) async {
     await pumpFlow(tester, haptic: () {});
 
-    expect(find.byType(Dismissible), findsOneWidget);
+    expect(find.byType(Slidable), findsOneWidget);
   });
 
   testWidgets('haptic and rescue dispatch happen only after swipe threshold', (
@@ -96,14 +97,31 @@ void main() {
   ) async {
     var haptics = 0;
     final (_, repository) = await pumpFlow(tester, haptic: () => haptics++);
-    final dismissible = find.byType(Dismissible);
+    final slidable = find.byType(Slidable);
 
-    await tester.drag(dismissible, const Offset(40, 0));
+    // A timed drag (rather than a plain instantaneous tester.drag) is
+    // required here: flutter_slidable only mounts DismissiblePane -- the
+    // widget whose initState registers the listener that makes
+    // isDismissibleReady true -- once a frame is pumped after the ratio
+    // exceeds the pane's extentRatio. A plain tester.drag delivers its
+    // whole down/move/up sequence with no frame pumped in between, so
+    // isDismissibleReady would still read false at release and the
+    // gesture would silently fall back to "open the pane" instead of
+    // dismissing -- unlike real, frame-by-frame finger drags.
+    await tester.timedDrag(
+      slidable,
+      const Offset(40, 0),
+      const Duration(milliseconds: 100),
+    );
     await tester.pump();
     expect(haptics, 0);
     expect(repository.rescueCalls, 0);
 
-    await tester.drag(dismissible, const Offset(400, 0));
+    await tester.timedDrag(
+      slidable,
+      const Offset(400, 0),
+      const Duration(milliseconds: 400),
+    );
     await tester.pumpAndSettle();
     expect(haptics, 1);
     expect(repository.rescueCalls, 1);
@@ -124,7 +142,11 @@ void main() {
       ),
     );
 
-    await tester.drag(find.byType(Dismissible), const Offset(400, 0));
+    await tester.timedDrag(
+      find.byType(Slidable),
+      const Offset(400, 0),
+      const Duration(milliseconds: 400),
+    );
     await tester.pumpAndSettle();
     expect(find.byIcon(TideIcons.undo.data), findsOneWidget);
 
