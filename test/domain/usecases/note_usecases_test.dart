@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tide/domain/entities/archive_receipt.dart';
+import 'package:tide/domain/entities/delete_receipt.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
@@ -148,6 +150,47 @@ final class FakeNoteRepository implements NoteRepository {
     );
     _emit();
   }
+
+  @override
+  Stream<List<Note>> watchArchivedNotes() => const Stream.empty();
+
+  @override
+  Stream<List<Note>> watchDeletedNotes() => const Stream.empty();
+
+  @override
+  Future<ArchiveReceipt?> archive(String id, DateTime archivedAt) async {
+    final index = seeded.indexWhere((note) => note.id == id);
+    if (index == -1) return null;
+    seeded[index] = Note(
+      id: seeded[index].id,
+      content: seeded[index].content,
+      createdAt: seeded[index].createdAt,
+      updatedAt: seeded[index].updatedAt,
+      surfacedAt: seeded[index].surfacedAt,
+      rescueCount: seeded[index].rescueCount,
+      archivedAt: archivedAt,
+    );
+    return ArchiveReceipt(noteId: id, archivedAt: archivedAt);
+  }
+
+  @override
+  Future<void> restoreFromArchive(String id) async {}
+
+  @override
+  Future<DeleteReceipt?> softDelete(String id, DateTime deletedAt) async {
+    final index = seeded.indexWhere((note) => note.id == id);
+    if (index == -1) return null;
+    return DeleteReceipt(noteId: id, deletedAt: deletedAt);
+  }
+
+  @override
+  Future<void> restoreFromTrash(String id) async {}
+
+  @override
+  Future<void> permanentlyDelete(String id) async {}
+
+  @override
+  Future<void> emptyTrash() async {}
 
   void _emit() {
     final sorted = [...seeded]

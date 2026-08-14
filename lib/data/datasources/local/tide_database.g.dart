@@ -74,6 +74,28 @@ class $NoteRecordsTable extends NoteRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
+    'archivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -82,6 +104,8 @@ class $NoteRecordsTable extends NoteRecords
     updatedAt,
     surfacedAt,
     rescueCount,
+    archivedAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -141,6 +165,18 @@ class $NoteRecordsTable extends NoteRecords
         ),
       );
     }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+        _archivedAtMeta,
+        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -174,6 +210,14 @@ class $NoteRecordsTable extends NoteRecords
         DriftSqlType.int,
         data['${effectivePrefix}rescue_count'],
       )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}archived_at'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -190,6 +234,8 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
   final DateTime updatedAt;
   final DateTime surfacedAt;
   final int rescueCount;
+  final DateTime? archivedAt;
+  final DateTime? deletedAt;
   const NoteRecord({
     required this.id,
     required this.content,
@@ -197,6 +243,8 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
     required this.updatedAt,
     required this.surfacedAt,
     required this.rescueCount,
+    this.archivedAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -207,6 +255,12 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['surfaced_at'] = Variable<DateTime>(surfacedAt);
     map['rescue_count'] = Variable<int>(rescueCount);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -218,6 +272,12 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
       updatedAt: Value(updatedAt),
       surfacedAt: Value(surfacedAt),
       rescueCount: Value(rescueCount),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -233,6 +293,8 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       surfacedAt: serializer.fromJson<DateTime>(json['surfacedAt']),
       rescueCount: serializer.fromJson<int>(json['rescueCount']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -245,6 +307,8 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'surfacedAt': serializer.toJson<DateTime>(surfacedAt),
       'rescueCount': serializer.toJson<int>(rescueCount),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -255,6 +319,8 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
     DateTime? updatedAt,
     DateTime? surfacedAt,
     int? rescueCount,
+    Value<DateTime?> archivedAt = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => NoteRecord(
     id: id ?? this.id,
     content: content ?? this.content,
@@ -262,6 +328,8 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
     updatedAt: updatedAt ?? this.updatedAt,
     surfacedAt: surfacedAt ?? this.surfacedAt,
     rescueCount: rescueCount ?? this.rescueCount,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   NoteRecord copyWithCompanion(NoteRecordsCompanion data) {
     return NoteRecord(
@@ -275,6 +343,10 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
       rescueCount: data.rescueCount.present
           ? data.rescueCount.value
           : this.rescueCount,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -286,14 +358,24 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('surfacedAt: $surfacedAt, ')
-          ..write('rescueCount: $rescueCount')
+          ..write('rescueCount: $rescueCount, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, content, createdAt, updatedAt, surfacedAt, rescueCount);
+  int get hashCode => Object.hash(
+    id,
+    content,
+    createdAt,
+    updatedAt,
+    surfacedAt,
+    rescueCount,
+    archivedAt,
+    deletedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -303,7 +385,9 @@ class NoteRecord extends DataClass implements Insertable<NoteRecord> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.surfacedAt == this.surfacedAt &&
-          other.rescueCount == this.rescueCount);
+          other.rescueCount == this.rescueCount &&
+          other.archivedAt == this.archivedAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
@@ -313,6 +397,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
   final Value<DateTime> updatedAt;
   final Value<DateTime> surfacedAt;
   final Value<int> rescueCount;
+  final Value<DateTime?> archivedAt;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const NoteRecordsCompanion({
     this.id = const Value.absent(),
@@ -321,6 +407,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
     this.updatedAt = const Value.absent(),
     this.surfacedAt = const Value.absent(),
     this.rescueCount = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NoteRecordsCompanion.insert({
@@ -330,6 +418,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
     required DateTime updatedAt,
     required DateTime surfacedAt,
     this.rescueCount = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        content = Value(content),
@@ -343,6 +433,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? surfacedAt,
     Expression<int>? rescueCount,
+    Expression<DateTime>? archivedAt,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -352,6 +444,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (surfacedAt != null) 'surfaced_at': surfacedAt,
       if (rescueCount != null) 'rescue_count': rescueCount,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -363,6 +457,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
     Value<DateTime>? updatedAt,
     Value<DateTime>? surfacedAt,
     Value<int>? rescueCount,
+    Value<DateTime?>? archivedAt,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return NoteRecordsCompanion(
@@ -372,6 +468,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
       updatedAt: updatedAt ?? this.updatedAt,
       surfacedAt: surfacedAt ?? this.surfacedAt,
       rescueCount: rescueCount ?? this.rescueCount,
+      archivedAt: archivedAt ?? this.archivedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -397,6 +495,12 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
     if (rescueCount.present) {
       map['rescue_count'] = Variable<int>(rescueCount.value);
     }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -412,6 +516,8 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
           ..write('updatedAt: $updatedAt, ')
           ..write('surfacedAt: $surfacedAt, ')
           ..write('rescueCount: $rescueCount, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -437,6 +543,8 @@ typedef $$NoteRecordsTableCreateCompanionBuilder =
       required DateTime updatedAt,
       required DateTime surfacedAt,
       Value<int> rescueCount,
+      Value<DateTime?> archivedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 typedef $$NoteRecordsTableUpdateCompanionBuilder =
@@ -447,6 +555,8 @@ typedef $$NoteRecordsTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<DateTime> surfacedAt,
       Value<int> rescueCount,
+      Value<DateTime?> archivedAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 
@@ -486,6 +596,16 @@ class $$NoteRecordsTableFilterComposer
 
   ColumnFilters<int> get rescueCount => $composableBuilder(
     column: $table.rescueCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -528,6 +648,16 @@ class $$NoteRecordsTableOrderingComposer
     column: $table.rescueCount,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$NoteRecordsTableAnnotationComposer
@@ -560,6 +690,14 @@ class $$NoteRecordsTableAnnotationComposer
     column: $table.rescueCount,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
 class $$NoteRecordsTableTableManager
@@ -599,6 +737,8 @@ class $$NoteRecordsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> surfacedAt = const Value.absent(),
                 Value<int> rescueCount = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteRecordsCompanion(
                 id: id,
@@ -607,6 +747,8 @@ class $$NoteRecordsTableTableManager
                 updatedAt: updatedAt,
                 surfacedAt: surfacedAt,
                 rescueCount: rescueCount,
+                archivedAt: archivedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -617,6 +759,8 @@ class $$NoteRecordsTableTableManager
                 required DateTime updatedAt,
                 required DateTime surfacedAt,
                 Value<int> rescueCount = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteRecordsCompanion.insert(
                 id: id,
@@ -625,6 +769,8 @@ class $$NoteRecordsTableTableManager
                 updatedAt: updatedAt,
                 surfacedAt: surfacedAt,
                 rescueCount: rescueCount,
+                archivedAt: archivedAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 
+import '../../domain/entities/archive_receipt.dart';
+import '../../domain/entities/delete_receipt.dart';
 import '../../domain/entities/note.dart';
 import '../../domain/entities/rescue_receipt.dart';
 import '../../domain/repositories/note_repository.dart';
@@ -13,10 +15,43 @@ final class LocalNoteRepository implements NoteRepository {
 
   @override
   Stream<List<Note>> watchNotes() =>
-      (_database.select(_database.noteRecords)..orderBy([
-            (table) => OrderingTerm.desc(table.surfacedAt),
-            (table) => OrderingTerm.desc(table.id),
-          ]))
+      (_database.select(_database.noteRecords)
+            ..where(
+              (table) => table.archivedAt.isNull() & table.deletedAt.isNull(),
+            )
+            ..orderBy([
+              (table) => OrderingTerm.desc(table.surfacedAt),
+              (table) => OrderingTerm.desc(table.id),
+            ]))
+          .watch()
+          .map(
+            (rows) => rows
+                .map(NoteModel.fromRecord)
+                .map((model) => model.toEntity())
+                .toList(growable: false),
+          );
+
+  @override
+  Stream<List<Note>> watchArchivedNotes() =>
+      (_database.select(_database.noteRecords)
+            ..where(
+              (table) =>
+                  table.archivedAt.isNotNull() & table.deletedAt.isNull(),
+            )
+            ..orderBy([(table) => OrderingTerm.desc(table.archivedAt)]))
+          .watch()
+          .map(
+            (rows) => rows
+                .map(NoteModel.fromRecord)
+                .map((model) => model.toEntity())
+                .toList(growable: false),
+          );
+
+  @override
+  Stream<List<Note>> watchDeletedNotes() =>
+      (_database.select(_database.noteRecords)
+            ..where((table) => table.deletedAt.isNotNull())
+            ..orderBy([(table) => OrderingTerm.desc(table.deletedAt)]))
           .watch()
           .map(
             (rows) => rows
@@ -107,4 +142,54 @@ final class LocalNoteRepository implements NoteRepository {
               ),
             );
       });
+
+  @override
+  Future<ArchiveReceipt?> archive(String id, DateTime archivedAt) =>
+      _database.transaction(() async {
+        final current = await (_database.select(
+          _database.noteRecords,
+        )..where((table) => table.id.equals(id))).getSingleOrNull();
+        if (current == null) return null;
+        await (_database.update(_database.noteRecords)
+              ..where((table) => table.id.equals(id)))
+            .write(NoteRecordsCompanion(archivedAt: Value(archivedAt)));
+        return ArchiveReceipt(noteId: id, archivedAt: archivedAt);
+      });
+
+  @override
+  Future<void> restoreFromArchive(String id) async {
+    await (_database.update(_database.noteRecords)
+          ..where((table) => table.id.equals(id)))
+        .write(const NoteRecordsCompanion(archivedAt: Value(null)));
+  }
+
+  @override
+  Future<DeleteReceipt?> softDelete(String id, DateTime deletedAt) =>
+      _database.transaction(() async {
+        final current = await (_database.select(
+          _database.noteRecords,
+        )..where((table) => table.id.equals(id))).getSingleOrNull();
+        if (current == null) return null;
+        await (_database.update(_database.noteRecords)
+              ..where((table) => table.id.equals(id)))
+            .write(NoteRecordsCompanion(deletedAt: Value(deletedAt)));
+        return DeleteReceipt(noteId: id, deletedAt: deletedAt);
+      });
+
+  @override
+  Future<void> restoreFromTrash(String id) async {
+    await (_database.update(_database.noteRecords)
+          ..where((table) => table.id.equals(id)))
+        .write(const NoteRecordsCompanion(deletedAt: Value(null)));
+  }
+
+  @override
+  Future<void> permanentlyDelete(String id) => (_database.delete(
+    _database.noteRecords,
+  )..where((table) => table.id.equals(id))).go();
+
+  @override
+  Future<void> emptyTrash() => (_database.delete(
+    _database.noteRecords,
+  )..where((table) => table.deletedAt.isNotNull())).go();
 }

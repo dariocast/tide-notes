@@ -8,6 +8,8 @@ final class Note extends Equatable {
     required this.updatedAt,
     required this.surfacedAt,
     required this.rescueCount,
+    this.archivedAt,
+    this.deletedAt,
   });
 
   final String id;
@@ -16,6 +18,8 @@ final class Note extends Equatable {
   final DateTime updatedAt;
   final DateTime surfacedAt;
   final int rescueCount;
+  final DateTime? archivedAt;
+  final DateTime? deletedAt;
 
   Note copyWith({
     String? content,
@@ -29,15 +33,19 @@ final class Note extends Equatable {
     updatedAt: updatedAt ?? this.updatedAt,
     surfacedAt: surfacedAt ?? this.surfacedAt,
     rescueCount: rescueCount ?? this.rescueCount,
+    archivedAt: archivedAt,
+    deletedAt: deletedAt,
   );
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     id,
     content,
     createdAt,
     updatedAt,
     surfacedAt,
     rescueCount,
+    archivedAt,
+    deletedAt,
   ];
 }

@@ -4,6 +4,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tide/core/utils/note_exporter.dart';
+import 'package:tide/domain/entities/archive_receipt.dart';
+import 'package:tide/domain/entities/delete_receipt.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
@@ -288,6 +290,36 @@ final class FakeNoteRepository implements NoteRepository {
 
   @override
   Future<void> undoRescue(RescueReceipt receipt) async {}
+
+  @override
+  Stream<List<Note>> watchArchivedNotes() => const Stream.empty();
+
+  @override
+  Stream<List<Note>> watchDeletedNotes() => const Stream.empty();
+
+  @override
+  Future<ArchiveReceipt?> archive(String id, DateTime archivedAt) async {
+    if (!notes.any((note) => note.id == id)) return null;
+    return ArchiveReceipt(noteId: id, archivedAt: archivedAt);
+  }
+
+  @override
+  Future<void> restoreFromArchive(String id) async {}
+
+  @override
+  Future<DeleteReceipt?> softDelete(String id, DateTime deletedAt) async {
+    if (!notes.any((note) => note.id == id)) return null;
+    return DeleteReceipt(noteId: id, deletedAt: deletedAt);
+  }
+
+  @override
+  Future<void> restoreFromTrash(String id) async {}
+
+  @override
+  Future<void> permanentlyDelete(String id) async {}
+
+  @override
+  Future<void> emptyTrash() async {}
 
   void emit(List<Note> value) => controller.add(value);
 

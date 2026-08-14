@@ -11,6 +11,8 @@ final class NoteModel {
     required this.updatedAt,
     required this.surfacedAt,
     required this.rescueCount,
+    this.archivedAt,
+    this.deletedAt,
   });
 
   final String id;
@@ -19,6 +21,8 @@ final class NoteModel {
   final DateTime updatedAt;
   final DateTime surfacedAt;
   final int rescueCount;
+  final DateTime? archivedAt;
+  final DateTime? deletedAt;
 
   factory NoteModel.fromRecord(NoteRecord record) => NoteModel(
     id: record.id,
@@ -27,6 +31,8 @@ final class NoteModel {
     updatedAt: record.updatedAt,
     surfacedAt: record.surfacedAt,
     rescueCount: record.rescueCount,
+    archivedAt: record.archivedAt,
+    deletedAt: record.deletedAt,
   );
 
   factory NoteModel.fromEntity(Note note) => NoteModel(
@@ -36,6 +42,8 @@ final class NoteModel {
     updatedAt: note.updatedAt,
     surfacedAt: note.surfacedAt,
     rescueCount: note.rescueCount,
+    archivedAt: note.archivedAt,
+    deletedAt: note.deletedAt,
   );
 
   Note toEntity() => Note(
@@ -45,6 +53,8 @@ final class NoteModel {
     updatedAt: updatedAt,
     surfacedAt: surfacedAt,
     rescueCount: rescueCount,
+    archivedAt: archivedAt,
+    deletedAt: deletedAt,
   );
 
   NoteRecordsCompanion toCompanion() => NoteRecordsCompanion(
@@ -54,5 +64,7 @@ final class NoteModel {
     updatedAt: Value(updatedAt),
     surfacedAt: Value(surfacedAt),
     rescueCount: Value(rescueCount),
+    archivedAt: Value(archivedAt),
+    deletedAt: Value(deletedAt),
   );
 }

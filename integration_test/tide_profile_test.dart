@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:tide/app.dart';
+import 'package:tide/domain/entities/archive_receipt.dart';
+import 'package:tide/domain/entities/delete_receipt.dart';
 import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
@@ -113,4 +115,29 @@ final class _ProfileRepository implements NoteRepository {
 
   @override
   Future<void> undoRescue(RescueReceipt receipt) async {}
+
+  @override
+  Stream<List<Note>> watchArchivedNotes() => const Stream.empty();
+
+  @override
+  Stream<List<Note>> watchDeletedNotes() => const Stream.empty();
+
+  @override
+  Future<ArchiveReceipt?> archive(String id, DateTime archivedAt) async => null;
+
+  @override
+  Future<void> restoreFromArchive(String id) async {}
+
+  @override
+  Future<DeleteReceipt?> softDelete(String id, DateTime deletedAt) async =>
+      null;
+
+  @override
+  Future<void> restoreFromTrash(String id) async {}
+
+  @override
+  Future<void> permanentlyDelete(String id) async {}
+
+  @override
+  Future<void> emptyTrash() async {}
 }

@@ -16,6 +16,10 @@ class NoteRecords extends Table {
 
   IntColumn get rescueCount => integer().withDefault(const Constant(0))();
 
+  DateTimeColumn get archivedAt => dateTime().nullable()();
+
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
@@ -27,5 +31,16 @@ class TideDatabase extends _$TideDatabase {
   TideDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (migrator) => migrator.createAll(),
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(noteRecords, noteRecords.archivedAt);
+        await migrator.addColumn(noteRecords, noteRecords.deletedAt);
+      }
+    },
+  );
 }

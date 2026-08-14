@@ -81,13 +81,100 @@ void main() {
     expect(actual.surfacedAt, latest);
     expect(actual.rescueCount, 2);
   });
+
+  test('watchNotes excludes archived and deleted notes', () async {
+    await repository.createNote(older);
+    await repository.createNote(newer);
+
+    await repository.archive(older.id, base);
+    final afterArchive = await repository.watchNotes().first;
+    expect(afterArchive, [newer]);
+
+    await repository.softDelete(newer.id, base);
+    final afterDelete = await repository.watchNotes().first;
+    expect(afterDelete, isEmpty);
+  });
+
+  test(
+    'watchArchivedNotes and watchDeletedNotes are mutually exclusive',
+    () async {
+      await repository.createNote(older);
+      await repository.createNote(newer);
+
+      await repository.archive(older.id, base);
+      await repository.softDelete(newer.id, base);
+
+      expect((await repository.watchArchivedNotes().first).single.id, older.id);
+      expect((await repository.watchDeletedNotes().first).single.id, newer.id);
+    },
+  );
+
+  test(
+    'archive then restoreFromArchive returns note to the main stream',
+    () async {
+      await repository.createNote(older);
+
+      final receipt = await repository.archive(older.id, base);
+      expect(receipt!.noteId, older.id);
+      expect(await repository.watchNotes().first, isEmpty);
+
+      await repository.restoreFromArchive(older.id);
+      expect((await repository.watchNotes().first).single.archivedAt, isNull);
+    },
+  );
+
+  test(
+    'softDelete then restoreFromTrash returns note to the main stream',
+    () async {
+      await repository.createNote(older);
+
+      final receipt = await repository.softDelete(older.id, base);
+      expect(receipt!.noteId, older.id);
+      expect(await repository.watchDeletedNotes().first, hasLength(1));
+
+      await repository.restoreFromTrash(older.id);
+      expect((await repository.watchNotes().first).single.deletedAt, isNull);
+    },
+  );
+
+  test('permanentlyDelete removes a single trashed note for good', () async {
+    await repository.createNote(older);
+    await repository.createNote(newer);
+    await repository.softDelete(older.id, base);
+    await repository.softDelete(newer.id, base);
+
+    await repository.permanentlyDelete(older.id);
+
+    expect((await repository.watchDeletedNotes().first).single.id, newer.id);
+  });
+
+  test(
+    'emptyTrash removes every trashed note but leaves active notes alone',
+    () async {
+      await repository.createNote(older);
+      await repository.createNote(newer);
+      await repository.softDelete(older.id, base);
+
+      await repository.emptyTrash();
+
+      expect(await repository.watchDeletedNotes().first, isEmpty);
+      expect(await repository.watchNotes().first, [newer]);
+    },
+  );
 }
 
-Note note(String id, DateTime surfacedAt) => Note(
+Note note(
+  String id,
+  DateTime surfacedAt, {
+  DateTime? archivedAt,
+  DateTime? deletedAt,
+}) => Note(
   id: id,
   content: id,
   createdAt: surfacedAt,
   updatedAt: surfacedAt,
   surfacedAt: surfacedAt,
   rescueCount: 0,
+  archivedAt: archivedAt,
+  deletedAt: deletedAt,
 );
