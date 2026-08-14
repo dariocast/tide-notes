@@ -298,6 +298,29 @@ void main() {
     // on Text.style itself.
     final rendered = tester.widget<Text>(find.text('bold body'));
     expect(rendered.textSpan?.style?.fontWeight, FontWeight.w700);
+
+    // Regression: PrefixText must only ever receive the first line.
+    // PrefixText does no markdown parsing of its own -- it renders
+    // whatever string it's handed as one continuous plain-text RichText.
+    // If it were still handed the full multi-line content, the raw
+    // markdown source ("**bold body**") would render a second time,
+    // unformatted, via PrefixText's own RichText -- alongside the
+    // correctly-rendered MarkdownBody below it. `find.text`/
+    // `find.textContaining` only match `Text`/`EditableText` widgets, not
+    // a bare `RichText` like PrefixText's, so we inspect PrefixText's
+    // widget property and the plain text of every RichText in the tree
+    // directly, rather than relying on those finders here.
+    final prefixText = tester.widget<PrefixText>(find.byType(PrefixText));
+    expect(prefixText.content, 'idea: title');
+
+    final richTexts = tester.widgetList<RichText>(find.byType(RichText));
+    for (final richText in richTexts) {
+      expect(richText.text.toPlainText(), isNot(contains('**bold body**')));
+    }
+
+    // The first line (prefix + title) should still render exactly once,
+    // via PrefixText.
+    expect(find.bySemanticsLabel('idea: title'), findsOneWidget);
   });
 
   testWidgets('single-line notes render exactly as before, no markdown body', (

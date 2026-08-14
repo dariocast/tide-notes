@@ -161,7 +161,7 @@ class _NoteCardState extends State<NoteCard> {
                     onChanged: widget.onChanged,
                   )
                 else ...[
-                  PrefixText(content: widget.note.content, index: widget.index),
+                  PrefixText(content: lines.first, index: widget.index),
                   if (markdownBody != null)
                     Padding(
                       padding: const EdgeInsets.only(top: GSpace.s1),
