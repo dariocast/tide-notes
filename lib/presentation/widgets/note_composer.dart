@@ -56,6 +56,22 @@ class _NoteComposerState extends State<NoteComposer> {
     }
   }
 
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (text == null || text.isEmpty) return;
+    final selection = _controller.selection;
+    final newText = selection.isValid
+        ? _controller.text.replaceRange(selection.start, selection.end, text)
+        : _controller.text + text;
+    _controller.text = newText;
+    _controller.selection = TextSelection.collapsed(
+      offset:
+          (selection.isValid ? selection.start : _controller.text.length) +
+          text.length,
+    );
+  }
+
   void _submit() {
     final content = _controller.text;
     if (content.trim().isEmpty) return;
@@ -139,6 +155,17 @@ class _NoteComposerState extends State<NoteComposer> {
                             vertical: GSpace.s2,
                           ),
                         ),
+                      ),
+                    ),
+                    Semantics(
+                      label: l10n.pasteFromClipboard,
+                      button: true,
+                      onTap: _pasteFromClipboard,
+                      child: IconButton(
+                        key: const ValueKey('composer-paste'),
+                        onPressed: _pasteFromClipboard,
+                        tooltip: l10n.pasteFromClipboard,
+                        icon: const FaIcon(TideIcons.paste, size: 18),
                       ),
                     ),
                     Semantics(

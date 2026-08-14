@@ -17,4 +17,5 @@ abstract final class TideIcons {
   static const warning = FontAwesomeIcons.triangleExclamation;
   static const search = FontAwesomeIcons.magnifyingGlass;
   static const clearSearch = FontAwesomeIcons.xmark;
+  static const paste = FontAwesomeIcons.paste;
 }

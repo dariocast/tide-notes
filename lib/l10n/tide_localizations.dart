@@ -22,6 +22,8 @@ class TideLocalizations {
   String get captureHint =>
       isItalian ? 'Cattura un pensiero…' : 'Capture a thought…';
   String get saveNote => isItalian ? 'Salva nota' : 'Save note';
+  String get pasteFromClipboard =>
+      isItalian ? 'Incolla dagli appunti' : 'Paste from clipboard';
   String get menu => isItalian ? 'Menu' : 'Menu';
   String get appearanceSettings =>
       isItalian ? 'Impostazioni aspetto' : 'Appearance settings';

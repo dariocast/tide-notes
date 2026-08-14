@@ -31,6 +31,7 @@ import 'package:tide/presentation/blocs/tide_bloc.dart';
 import 'package:tide/presentation/blocs/tide_event.dart';
 import 'package:tide/presentation/pages/tide_page.dart';
 import 'package:tide/presentation/widgets/note_card.dart';
+import 'package:tide/presentation/widgets/note_composer.dart';
 import 'package:tide/presentation/widgets/tide_shell.dart';
 
 void main() {
@@ -374,6 +375,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.created.single.content, 'command submit');
+  });
+
+  testWidgets('paste icon inserts clipboard content into the composer', (
+    tester,
+  ) async {
+    final messenger = tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.getData') {
+        return {'text': 'pasted thought'};
+      }
+      return null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteComposer(appendCompleted: 0, onSubmit: (_) {}),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('composer-paste')));
+    await tester.pump();
+
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('composer-input')))
+          .controller!
+          .text,
+      'pasted thought',
+    );
   });
 
   testWidgets('empty state explains Append, Review, Rescue', (tester) async {
