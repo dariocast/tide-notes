@@ -60,6 +60,8 @@ final class TideBloc extends Bloc<TideEvent, TideState> {
     on<ArchivedNotesReceived>(_onArchivedNotesReceived);
     on<DeletedNotesReceived>(_onDeletedNotesReceived);
     on<NotesStreamFailed>(_onNotesStreamFailed);
+    on<ArchivedNotesStreamFailed>(_onArchivedNotesStreamFailed);
+    on<DeletedNotesStreamFailed>(_onDeletedNotesStreamFailed);
     on<NoteAppendRequested>(_onAppendRequested);
     on<NotesDeleteAllRequested>(_onDeleteAllRequested);
     on<NotesExportRequested>(_onExportRequested);
@@ -119,12 +121,16 @@ final class TideBloc extends Bloc<TideEvent, TideState> {
       if (watchArchived != null) {
         _archivedNotesSubscription = watchArchived().listen(
           (notes) => add(ArchivedNotesReceived(notes)),
+          onError: (Object error, StackTrace stack) =>
+              add(ArchivedNotesStreamFailed(error)),
         );
       }
       final watchDeleted = watchDeletedNotes;
       if (watchDeleted != null) {
         _deletedNotesSubscription = watchDeleted().listen(
           (notes) => add(DeletedNotesReceived(notes)),
+          onError: (Object error, StackTrace stack) =>
+              add(DeletedNotesStreamFailed(error)),
         );
       }
     } catch (error) {
@@ -166,6 +172,16 @@ final class TideBloc extends Bloc<TideEvent, TideState> {
       ),
     );
   }
+
+  void _onArchivedNotesStreamFailed(
+    ArchivedNotesStreamFailed event,
+    Emitter<TideState> emit,
+  ) => emit(state.copyWith(message: "Couldn't load archive."));
+
+  void _onDeletedNotesStreamFailed(
+    DeletedNotesStreamFailed event,
+    Emitter<TideState> emit,
+  ) => emit(state.copyWith(message: "Couldn't load trash."));
 
   Future<void> _onAppendRequested(
     NoteAppendRequested event,

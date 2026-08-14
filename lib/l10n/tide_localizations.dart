@@ -101,6 +101,10 @@ class TideLocalizations {
       isItalian ? 'Impossibile svuotare il cestino.' : value,
     "Couldn't load your stream." =>
       isItalian ? 'Impossibile caricare il flusso.' : value,
+    "Couldn't load archive." =>
+      isItalian ? "Impossibile caricare l'archivio." : value,
+    "Couldn't load trash." =>
+      isItalian ? 'Impossibile caricare il cestino.' : value,
     "Couldn't save note. Try again." =>
       isItalian ? 'Impossibile salvare la nota. Riprova.' : value,
     'All notes deleted.' =>

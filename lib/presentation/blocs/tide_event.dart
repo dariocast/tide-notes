@@ -188,3 +188,21 @@ final class NotesStreamFailed extends TideEvent {
   @override
   List<Object> get props => [error];
 }
+
+final class ArchivedNotesStreamFailed extends TideEvent {
+  const ArchivedNotesStreamFailed(this.error);
+
+  final Object error;
+
+  @override
+  List<Object> get props => [error];
+}
+
+final class DeletedNotesStreamFailed extends TideEvent {
+  const DeletedNotesStreamFailed(this.error);
+
+  final Object error;
+
+  @override
+  List<Object> get props => [error];
+}

@@ -338,6 +338,40 @@ void main() {
   );
 
   blocTest<TideBloc, TideState>(
+    'archived stream error surfaces a message without a fatal failure',
+    build: () => buildBloc(),
+    seed: () => TideState.loaded([note]),
+    act: (bloc) async {
+      bloc.add(const TideStarted());
+      await Future<void>.delayed(Duration.zero);
+      repository.archivedController.addError(StateError('offline'));
+    },
+    expect: () => [
+      isA<TideState>().having((state) => state.loading, 'loading', true),
+      isA<TideState>()
+          .having((state) => state.message, 'message', "Couldn't load archive.")
+          .having((state) => state.fatalFailure, 'fatalFailure', isNull),
+    ],
+  );
+
+  blocTest<TideBloc, TideState>(
+    'deleted stream error surfaces a message without a fatal failure',
+    build: () => buildBloc(),
+    seed: () => TideState.loaded([note]),
+    act: (bloc) async {
+      bloc.add(const TideStarted());
+      await Future<void>.delayed(Duration.zero);
+      repository.deletedController.addError(StateError('offline'));
+    },
+    expect: () => [
+      isA<TideState>().having((state) => state.loading, 'loading', true),
+      isA<TideState>()
+          .having((state) => state.message, 'message', "Couldn't load trash.")
+          .having((state) => state.fatalFailure, 'fatalFailure', isNull),
+    ],
+  );
+
+  blocTest<TideBloc, TideState>(
     'message acknowledgement clears message',
     build: () => buildBloc(),
     seed: () => TideState.loaded([note], message: 'error'),
