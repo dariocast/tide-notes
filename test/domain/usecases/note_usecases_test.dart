@@ -7,8 +7,14 @@ import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
+import 'package:tide/domain/usecases/archive_note.dart';
+import 'package:tide/domain/usecases/delete_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
+import 'package:tide/domain/usecases/empty_trash.dart';
+import 'package:tide/domain/usecases/permanently_delete_note.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
+import 'package:tide/domain/usecases/restore_from_archive.dart';
+import 'package:tide/domain/usecases/restore_from_trash.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 
 void main() {
@@ -18,6 +24,12 @@ void main() {
   late EditNote edit;
   late RescueNote rescue;
   late UndoRescue undo;
+  late ArchiveNote archiveNote;
+  late RestoreFromArchive restoreFromArchive;
+  late DeleteNote deleteNote;
+  late RestoreFromTrash restoreFromTrash;
+  late PermanentlyDeleteNote permanentlyDeleteNote;
+  late EmptyTrash emptyTrash;
 
   setUp(() {
     repository = FakeNoteRepository();
@@ -36,6 +48,12 @@ void main() {
     edit = EditNote(repository, now: () => now);
     rescue = RescueNote(repository, now: () => now);
     undo = UndoRescue(repository);
+    archiveNote = ArchiveNote(repository, now: () => now);
+    restoreFromArchive = RestoreFromArchive(repository);
+    deleteNote = DeleteNote(repository, now: () => now);
+    restoreFromTrash = RestoreFromTrash(repository);
+    permanentlyDeleteNote = PermanentlyDeleteNote(repository);
+    emptyTrash = EmptyTrash(repository);
   });
 
   tearDown(() => repository.dispose());
@@ -77,6 +95,36 @@ void main() {
     expect(repository.seeded.single.rescueCount, 0);
     expect(repository.seeded.single.surfacedAt, before.surfacedAt);
   });
+
+  test(
+    'archiveNote returns a receipt and restoreFromArchive clears it',
+    () async {
+      final receipt = await archiveNote('n1');
+
+      expect(receipt!.noteId, 'n1');
+      expect(repository.seeded.single.archivedAt, now);
+
+      await restoreFromArchive('n1');
+
+      expect(repository.seeded.single.archivedAt, isNull);
+    },
+  );
+
+  test('deleteNote returns a receipt and restoreFromTrash clears it', () async {
+    final receipt = await deleteNote('n1');
+
+    expect(receipt!.noteId, 'n1');
+
+    await restoreFromTrash('n1');
+  });
+
+  test(
+    'permanentlyDeleteNote and emptyTrash call through to the repository',
+    () async {
+      await permanentlyDeleteNote('n1');
+      await emptyTrash();
+    },
+  );
 }
 
 final class FakeNoteRepository implements NoteRepository {
@@ -174,7 +222,18 @@ final class FakeNoteRepository implements NoteRepository {
   }
 
   @override
-  Future<void> restoreFromArchive(String id) async {}
+  Future<void> restoreFromArchive(String id) async {
+    final index = seeded.indexWhere((note) => note.id == id);
+    if (index == -1) return;
+    seeded[index] = Note(
+      id: seeded[index].id,
+      content: seeded[index].content,
+      createdAt: seeded[index].createdAt,
+      updatedAt: seeded[index].updatedAt,
+      surfacedAt: seeded[index].surfacedAt,
+      rescueCount: seeded[index].rescueCount,
+    );
+  }
 
   @override
   Future<DeleteReceipt?> softDelete(String id, DateTime deletedAt) async {
