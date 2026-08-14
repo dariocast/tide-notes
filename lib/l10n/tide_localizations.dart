@@ -88,6 +88,17 @@ class TideLocalizations {
 
   String message(String value) => switch (value) {
     'Rescued' => isItalian ? 'Riportata a galla' : 'Rescued',
+    'Archived' => isItalian ? 'Archiviata' : 'Archived',
+    'Deleted' => isItalian ? 'Eliminata' : 'Deleted',
+    'Trash emptied.' => isItalian ? 'Cestino svuotato.' : value,
+    "Couldn't archive note." =>
+      isItalian ? 'Impossibile archiviare la nota.' : value,
+    "Couldn't delete note." =>
+      isItalian ? 'Impossibile eliminare la nota.' : value,
+    "Couldn't restore note." =>
+      isItalian ? 'Impossibile ripristinare la nota.' : value,
+    "Couldn't empty the trash." =>
+      isItalian ? 'Impossibile svuotare il cestino.' : value,
     "Couldn't load your stream." =>
       isItalian ? 'Impossibile caricare il flusso.' : value,
     "Couldn't save note. Try again." =>

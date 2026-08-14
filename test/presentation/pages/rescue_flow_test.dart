@@ -14,9 +14,15 @@ import 'package:tide/domain/entities/note.dart';
 import 'package:tide/domain/entities/rescue_receipt.dart';
 import 'package:tide/domain/repositories/note_repository.dart';
 import 'package:tide/domain/usecases/append_note.dart';
+import 'package:tide/domain/usecases/archive_note.dart';
 import 'package:tide/domain/usecases/edit_note.dart';
 import 'package:tide/domain/usecases/delete_all_notes.dart';
+import 'package:tide/domain/usecases/delete_note.dart';
+import 'package:tide/domain/usecases/empty_trash.dart';
+import 'package:tide/domain/usecases/permanently_delete_note.dart';
 import 'package:tide/domain/usecases/rescue_note.dart';
+import 'package:tide/domain/usecases/restore_from_archive.dart';
+import 'package:tide/domain/usecases/restore_from_trash.dart';
 import 'package:tide/domain/usecases/undo_rescue.dart';
 import 'package:tide/domain/usecases/watch_notes.dart';
 import 'package:tide/presentation/blocs/tide_bloc.dart';
@@ -51,6 +57,12 @@ void main() {
       editNote: EditNote(repository, now: () => timestamp),
       rescueNote: RescueNote(repository, now: () => timestamp),
       undoRescue: UndoRescue(repository),
+      archiveNote: ArchiveNote(repository, now: () => timestamp),
+      restoreFromArchive: RestoreFromArchive(repository),
+      deleteNote: DeleteNote(repository, now: () => timestamp),
+      restoreFromTrash: RestoreFromTrash(repository),
+      permanentlyDeleteNote: PermanentlyDeleteNote(repository),
+      emptyTrash: EmptyTrash(repository),
       deleteAllNotes: DeleteAllNotes(repository),
     );
     addTearDown(() async {

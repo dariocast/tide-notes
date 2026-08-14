@@ -80,6 +80,90 @@ final class RescueUndoRequested extends TideEvent {
   List<Object> get props => [];
 }
 
+final class NoteArchiveRequested extends TideEvent {
+  const NoteArchiveRequested(this.id);
+
+  final String id;
+
+  @override
+  List<Object> get props => [id];
+}
+
+final class ArchiveUndoRequested extends TideEvent {
+  const ArchiveUndoRequested();
+
+  @override
+  List<Object> get props => [];
+}
+
+final class NoteDeleteRequested extends TideEvent {
+  const NoteDeleteRequested(this.id);
+
+  final String id;
+
+  @override
+  List<Object> get props => [id];
+}
+
+final class DeleteUndoRequested extends TideEvent {
+  const DeleteUndoRequested();
+
+  @override
+  List<Object> get props => [];
+}
+
+final class NoteRestoreFromArchiveRequested extends TideEvent {
+  const NoteRestoreFromArchiveRequested(this.id);
+
+  final String id;
+
+  @override
+  List<Object> get props => [id];
+}
+
+final class NoteRestoreFromTrashRequested extends TideEvent {
+  const NoteRestoreFromTrashRequested(this.id);
+
+  final String id;
+
+  @override
+  List<Object> get props => [id];
+}
+
+final class NotePermanentlyDeleteRequested extends TideEvent {
+  const NotePermanentlyDeleteRequested(this.id);
+
+  final String id;
+
+  @override
+  List<Object> get props => [id];
+}
+
+final class TrashEmptyRequested extends TideEvent {
+  const TrashEmptyRequested();
+
+  @override
+  List<Object> get props => [];
+}
+
+final class ArchivedNotesReceived extends TideEvent {
+  const ArchivedNotesReceived(this.notes);
+
+  final List<Note> notes;
+
+  @override
+  List<Object> get props => [notes];
+}
+
+final class DeletedNotesReceived extends TideEvent {
+  const DeletedNotesReceived(this.notes);
+
+  final List<Note> notes;
+
+  @override
+  List<Object> get props => [notes];
+}
+
 final class TideMessageAcknowledged extends TideEvent {
   const TideMessageAcknowledged();
 

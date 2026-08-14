@@ -8,10 +8,16 @@ import 'data/datasources/local/tide_database.dart';
 import 'data/repositories/local_note_repository.dart';
 import 'domain/repositories/note_repository.dart';
 import 'domain/usecases/append_note.dart';
+import 'domain/usecases/archive_note.dart';
 import 'domain/usecases/edit_note.dart';
 import 'domain/usecases/delete_all_notes.dart';
+import 'domain/usecases/delete_note.dart';
+import 'domain/usecases/empty_trash.dart';
 import 'domain/usecases/import_notes.dart';
+import 'domain/usecases/permanently_delete_note.dart';
 import 'domain/usecases/rescue_note.dart';
+import 'domain/usecases/restore_from_archive.dart';
+import 'domain/usecases/restore_from_trash.dart';
 import 'domain/usecases/undo_rescue.dart';
 import 'domain/usecases/watch_notes.dart';
 import 'presentation/blocs/tide_bloc.dart';
@@ -53,8 +59,16 @@ class _TideBootstrapState extends State<TideBootstrap> {
             editNote: EditNote(repository, now: DateTime.now),
             rescueNote: RescueNote(repository, now: DateTime.now),
             undoRescue: UndoRescue(repository),
+            archiveNote: ArchiveNote(repository, now: DateTime.now),
+            restoreFromArchive: RestoreFromArchive(repository),
+            deleteNote: DeleteNote(repository, now: DateTime.now),
+            restoreFromTrash: RestoreFromTrash(repository),
+            permanentlyDeleteNote: PermanentlyDeleteNote(repository),
+            emptyTrash: EmptyTrash(repository),
             deleteAllNotes: DeleteAllNotes(repository),
             importNotes: ImportNotes(repository),
+            watchArchivedNotes: repository.watchArchivedNotes,
+            watchDeletedNotes: repository.watchDeletedNotes,
           )..add(const TideStarted()),
           child: TideApp(home: const TidePage(), appearance: widget.appearance),
         ),
