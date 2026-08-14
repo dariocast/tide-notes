@@ -243,6 +243,16 @@ void main() {
     expect(noteCard('second'), findsOneWidget);
   });
 
+  testWidgets('shows a results count while searching', (tester) async {
+    await pumpPage(tester, notes: [makeNote('alpha'), makeNote('beta')]);
+    await tester.tap(find.byKey(const ValueKey('open-search')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('search-input')), 'alpha');
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 note found'), findsOneWidget);
+  });
+
   testWidgets('unmatched query shows dedicated feedback', (tester) async {
     await pumpPage(tester, notes: [makeNote('one', content: 'alpha')]);
     await tester.pump();

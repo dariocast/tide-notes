@@ -139,6 +139,33 @@ void main() {
     );
   }
 
+  testWidgets('highlights the search term when a query is provided', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: find this word'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+            highlightQuery: 'this',
+          ),
+        ),
+      ),
+    );
+
+    final rendered = tester.widget<RichText>(find.byType(RichText).first);
+    final matchSpan =
+        (rendered.text as TextSpan).children!.firstWhere(
+              (span) => (span as TextSpan).text == 'this',
+            )
+            as TextSpan;
+    expect(matchSpan.style?.backgroundColor, isNotNull);
+  });
+
   testWidgets('inline editor keeps the flat row surface', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

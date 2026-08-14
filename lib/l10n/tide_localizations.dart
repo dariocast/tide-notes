@@ -144,6 +144,13 @@ class TideLocalizations {
     return count == 1 ? '1 note captured' : '$count notes captured';
   }
 
+  String searchResultsCount(int count) {
+    if (isItalian) {
+      return count == 1 ? '1 nota trovata' : '$count note trovate';
+    }
+    return count == 1 ? '1 note found' : '$count notes found';
+  }
+
   String message(String value) => switch (value) {
     'Rescued' => isItalian ? 'Riportata a galla' : 'Rescued',
     'Archived' => isItalian ? 'Archiviata' : 'Archived',

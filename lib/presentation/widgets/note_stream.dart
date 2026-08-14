@@ -21,6 +21,7 @@ class NoteStream extends StatelessWidget {
     this.showNoSearchResults = false,
     this.haptic = defaultTideHaptic,
     this.now = defaultNoteNow,
+    this.highlightQuery,
   });
 
   final List<Note> notes;
@@ -36,6 +37,7 @@ class NoteStream extends StatelessWidget {
   final bool showNoSearchResults;
   final VoidCallback haptic;
   final DateTime Function() now;
+  final String? highlightQuery;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +72,7 @@ class NoteStream extends StatelessWidget {
             onUndo: note.id == undoNoteId ? onUndo : null,
             haptic: haptic,
             now: now,
+            highlightQuery: highlightQuery,
           );
         },
       );

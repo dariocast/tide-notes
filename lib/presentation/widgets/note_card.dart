@@ -40,6 +40,7 @@ class NoteCard extends StatefulWidget {
     this.haptic = defaultTideHaptic,
     this.now = defaultNoteNow,
     this.onEditingChanged,
+    this.highlightQuery,
   });
 
   final Note note;
@@ -56,6 +57,7 @@ class NoteCard extends StatefulWidget {
   final VoidCallback haptic;
   final DateTime Function() now;
   final ValueChanged<bool>? onEditingChanged;
+  final String? highlightQuery;
 
   @override
   State<NoteCard> createState() => _NoteCardState();
@@ -171,7 +173,11 @@ class _NoteCardState extends State<NoteCard> {
                     onChanged: widget.onChanged,
                   )
                 else ...[
-                  PrefixText(content: lines.first, index: widget.index),
+                  PrefixText(
+                    content: lines.first,
+                    index: widget.index,
+                    highlightQuery: widget.highlightQuery,
+                  ),
                   if (markdownBody != null)
                     Padding(
                       padding: const EdgeInsets.only(top: GSpace.s1),

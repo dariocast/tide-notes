@@ -234,6 +234,40 @@ class _TidePageState extends State<TidePage> {
           _searching &&
           _searchController.text.trim().isNotEmpty &&
           visibleNotes.isEmpty;
+      final showResultsCount =
+          _searching && _searchController.text.trim().isNotEmpty;
+
+      final noteStream = NoteStream(
+        notes: visibleNotes,
+        showNoSearchResults: showNoSearchResults,
+        busyNoteIds: state.busyNoteIds,
+        haptic: widget.haptic,
+        now: widget.now,
+        highlightQuery: _searching ? _searchController.text : null,
+        undoNoteId:
+            state.rescueReceipt?.noteId ??
+            state.archiveReceipt?.noteId ??
+            state.deleteReceipt?.noteId,
+        onUndo: () {
+          final bloc = context.read<TideBloc>();
+          if (state.rescueReceipt != null) {
+            bloc.add(const RescueUndoRequested());
+          } else if (state.archiveReceipt != null) {
+            bloc.add(const ArchiveUndoRequested());
+          } else if (state.deleteReceipt != null) {
+            bloc.add(const DeleteUndoRequested());
+          }
+        },
+        onChanged: (edit) => context.read<TideBloc>().add(
+          NoteEditRequested(edit.id, edit.content),
+        ),
+        onRescue: (id) => context.read<TideBloc>().add(NoteRescueRequested(id)),
+        onArchive: (id) =>
+            context.read<TideBloc>().add(NoteArchiveRequested(id)),
+        onDelete: (id) => context.read<TideBloc>().add(NoteDeleteRequested(id)),
+        onShare: (id) => _shareNote(id, state),
+        onCopy: (id) => _copyNote(id, state, context),
+      );
 
       return Scaffold(
         body: PaperBackground(
@@ -249,38 +283,34 @@ class _TidePageState extends State<TidePage> {
                     context.read<TideBloc>().add(NoteAppendRequested(content)),
               ),
               undoAction: const SizedBox.shrink(),
-              stream: NoteStream(
-                notes: visibleNotes,
-                showNoSearchResults: showNoSearchResults,
-                busyNoteIds: state.busyNoteIds,
-                haptic: widget.haptic,
-                now: widget.now,
-                undoNoteId:
-                    state.rescueReceipt?.noteId ??
-                    state.archiveReceipt?.noteId ??
-                    state.deleteReceipt?.noteId,
-                onUndo: () {
-                  final bloc = context.read<TideBloc>();
-                  if (state.rescueReceipt != null) {
-                    bloc.add(const RescueUndoRequested());
-                  } else if (state.archiveReceipt != null) {
-                    bloc.add(const ArchiveUndoRequested());
-                  } else if (state.deleteReceipt != null) {
-                    bloc.add(const DeleteUndoRequested());
-                  }
-                },
-                onChanged: (edit) => context.read<TideBloc>().add(
-                  NoteEditRequested(edit.id, edit.content),
-                ),
-                onRescue: (id) =>
-                    context.read<TideBloc>().add(NoteRescueRequested(id)),
-                onArchive: (id) =>
-                    context.read<TideBloc>().add(NoteArchiveRequested(id)),
-                onDelete: (id) =>
-                    context.read<TideBloc>().add(NoteDeleteRequested(id)),
-                onShare: (id) => _shareNote(id, state),
-                onCopy: (id) => _copyNote(id, state, context),
-              ),
+              stream: showResultsCount
+                  ? Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal:
+                                sizeClassOf(context) == GSizeClass.compact
+                                ? GSpace.s4
+                                : GSpace.s6,
+                            vertical: GSpace.s1,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              TideLocalizations.of(
+                                context,
+                              ).searchResultsCount(visibleNotes.length),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: tideColorsOf(context).textMuted,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        Expanded(child: noteStream),
+                      ],
+                    )
+                  : noteStream,
             ),
           ),
         ),
