@@ -33,3 +33,18 @@ MarkdownStyleSheet tideMarkdownStyleSheet(BuildContext context) {
     blockSpacing: GSpace.s2,
   );
 }
+
+/// The portion of [content] to render as markdown: everything after the
+/// first line. The first line is reserved for `PrefixText`'s plain-text,
+/// colored-prefix rendering (see `NoteCard`) — markdown syntax on line one
+/// would either collide with prefix parsing or, if fed through a markdown
+/// renderer alongside the rest, get merged into the same paragraph as the
+/// following line by CommonMark's soft-line-break rule. Returns `null`
+/// when there's nothing meaningful to render (single-line content, or
+/// only whitespace after the first line).
+String? markdownBodyFor(String content) {
+  final lines = content.split('\n');
+  if (lines.length <= 1) return null;
+  final body = lines.skip(1).join('\n');
+  return body.trim().isEmpty ? null : body;
+}

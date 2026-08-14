@@ -111,8 +111,9 @@ class _NoteEditPageState extends State<NoteEditPage> {
 
   // Only lines after the first are live-previewed as markdown, mirroring
   // NoteCard's own split (from Task 5): its first line is a plain
-  // prefix/title that never goes through MarkdownBody, and only
-  // `lines.skip(1)` is markdown-rendered.
+  // prefix/title that never goes through MarkdownBody, and only the body
+  // after it is markdown-rendered. See `markdownBodyFor` for the shared
+  // rule both call sites use.
   //
   // Beyond consistency, this also sidesteps a real widget-matching problem:
   // feeding the *whole* text (title line included) to a single MarkdownBody
@@ -124,10 +125,5 @@ class _NoteEditPageState extends State<NoteEditPage> {
   // preview's rendered text would be byte-identical to the input field's
   // text, so `find.text(...)` would match both the input and the preview
   // and no longer resolve to a single widget.
-  String? get _markdownBody {
-    final lines = _controller.text.split('\n');
-    if (lines.length <= 1) return null;
-    final body = lines.skip(1).join('\n');
-    return body.trim().isEmpty ? null : body;
-  }
+  String? get _markdownBody => markdownBodyFor(_controller.text);
 }

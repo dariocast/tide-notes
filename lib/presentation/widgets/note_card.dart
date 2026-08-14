@@ -128,7 +128,7 @@ class _NoteCardState extends State<NoteCard> {
       if (rescue.isNotEmpty) rescue,
     ].join(' • ');
     final lines = widget.note.content.split('\n');
-    final markdownBody = lines.length > 1 ? lines.skip(1).join('\n') : null;
+    final markdownBody = markdownBodyFor(widget.note.content);
 
     final child = AnimatedContainer(
       key: const ValueKey('note-row'),

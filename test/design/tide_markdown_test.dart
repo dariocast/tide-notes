@@ -29,4 +29,21 @@ void main() {
     expect(styleSheet.code?.backgroundColor, TideColors.foam.accentSubtle);
     expect(styleSheet.blockquoteDecoration, isA<BoxDecoration>());
   });
+
+  group('markdownBodyFor', () {
+    test('returns null for single-line content', () {
+      expect(markdownBodyFor('just a title'), isNull);
+    });
+
+    test('returns the joined remainder for multi-line content', () {
+      expect(
+        markdownBodyFor('title\n**bold**\nmore text'),
+        '**bold**\nmore text',
+      );
+    });
+
+    test('returns null when the remainder is only whitespace', () {
+      expect(markdownBodyFor('title\n   \n\t'), isNull);
+    });
+  });
 }
