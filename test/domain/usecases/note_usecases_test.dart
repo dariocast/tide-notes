@@ -180,6 +180,15 @@ final class FakeNoteRepository implements NoteRepository {
   Future<DeleteReceipt?> softDelete(String id, DateTime deletedAt) async {
     final index = seeded.indexWhere((note) => note.id == id);
     if (index == -1) return null;
+    seeded[index] = Note(
+      id: seeded[index].id,
+      content: seeded[index].content,
+      createdAt: seeded[index].createdAt,
+      updatedAt: seeded[index].updatedAt,
+      surfacedAt: seeded[index].surfacedAt,
+      rescueCount: seeded[index].rescueCount,
+      deletedAt: deletedAt,
+    );
     return DeleteReceipt(noteId: id, deletedAt: deletedAt);
   }
 

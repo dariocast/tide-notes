@@ -33,6 +33,8 @@ final class Note extends Equatable {
     updatedAt: updatedAt ?? this.updatedAt,
     surfacedAt: surfacedAt ?? this.surfacedAt,
     rescueCount: rescueCount ?? this.rescueCount,
+    // Not settable via copyWith: archive/trash state changes go through the
+    // repository, so these simply forward the current value unchanged.
     archivedAt: archivedAt,
     deletedAt: deletedAt,
   );
