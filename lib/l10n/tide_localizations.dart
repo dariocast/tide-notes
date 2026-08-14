@@ -101,6 +101,10 @@ class TideLocalizations {
   String get statsComputedLocally => isItalian
       ? 'Statistiche calcolate localmente.'
       : 'Stats are computed locally.';
+  String get tutorialTitle =>
+      isItalian ? 'Come funziona Tide' : 'How Tide Works';
+  String get howTideWorks =>
+      isItalian ? 'Come funziona Tide' : 'How Tide Works';
   String relativeSurfacedAge(DateTime surfacedAt, DateTime now) {
     final difference = now.difference(surfacedAt);
     if (difference.isNegative || difference.inMinutes < 1) {
