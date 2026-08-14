@@ -444,4 +444,26 @@ void main() {
 
     expect(rescued, isTrue);
   });
+
+  testWidgets('long-press opens the full-screen edit page', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: TideAppTheme.foam,
+        home: Scaffold(
+          body: NoteCard(
+            note: note.copyWith(content: 'idea: long press me'),
+            index: 1,
+            onChanged: (_) {},
+            onRescue: () {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.longPress(find.byKey(const ValueKey('note-row')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('edit-page-input')), findsOneWidget);
+    expect(find.text('idea: long press me'), findsOneWidget);
+  });
 }

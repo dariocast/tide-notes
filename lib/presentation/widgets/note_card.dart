@@ -12,6 +12,7 @@ import '../../design/tide_markdown.dart';
 import '../../core/utils/note_metadata_formatter.dart';
 import '../../domain/entities/note.dart';
 import '../../l10n/tide_localizations.dart';
+import '../pages/note_edit_page.dart';
 import 'prefix_text.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -208,7 +209,20 @@ class _NoteCardState extends State<NoteCard> {
       cursor: widget.busy ? SystemMouseCursors.basic : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(onTap: widget.busy ? null : _beginEditing, child: child),
+      child: InkWell(
+        onTap: widget.busy ? null : _beginEditing,
+        onLongPress: widget.busy
+            ? null
+            : () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => NoteEditPage(
+                    content: widget.note.content,
+                    onSave: widget.onChanged,
+                  ),
+                ),
+              ),
+        child: child,
+      ),
     );
     final interactive = _editing
         ? rowInteraction

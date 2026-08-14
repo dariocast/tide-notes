@@ -53,6 +53,8 @@ class TideLocalizations {
   String get copyNote => isItalian ? 'Copia' : 'Copy';
   String get noteCopied => isItalian ? 'Nota copiata.' : 'Note copied.';
   String get editNote => isItalian ? 'Modifica nota' : 'Edit note';
+  String get editPreviewEmpty =>
+      isItalian ? 'L\'anteprima apparirà qui.' : 'Preview appears here.';
   String get searchNotes => isItalian ? 'Cerca note' : 'Search notes';
   String get searchHint => isItalian ? 'Cerca nelle note…' : 'Search notes…';
   String get clearSearch =>
