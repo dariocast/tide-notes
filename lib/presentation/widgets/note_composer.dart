@@ -57,18 +57,29 @@ class _NoteComposerState extends State<NoteComposer> {
   }
 
   Future<void> _pasteFromClipboard() async {
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final ClipboardData? data;
+    try {
+      data = await Clipboard.getData(Clipboard.kTextPlain);
+    } catch (_) {
+      return;
+    }
     final text = data?.text;
     if (text == null || text.isEmpty) return;
     final selection = _controller.selection;
-    final newText = selection.isValid
-        ? _controller.text.replaceRange(selection.start, selection.end, text)
-        : _controller.text + text;
+    final insertionStart = selection.isValid
+        ? selection.start
+        : _controller.text.length;
+    final insertionEnd = selection.isValid
+        ? selection.end
+        : _controller.text.length;
+    final newText = _controller.text.replaceRange(
+      insertionStart,
+      insertionEnd,
+      text,
+    );
     _controller.text = newText;
     _controller.selection = TextSelection.collapsed(
-      offset:
-          (selection.isValid ? selection.start : _controller.text.length) +
-          text.length,
+      offset: insertionStart + text.length,
     );
   }
 

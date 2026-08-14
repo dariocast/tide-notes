@@ -412,6 +412,50 @@ void main() {
     );
   });
 
+  testWidgets(
+    'paste appends and places the cursor correctly when selection is invalid',
+    (tester) async {
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.getData') {
+          return {'text': 'pasted'};
+        }
+        return null;
+      });
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: TideAppTheme.foam,
+          home: Scaffold(
+            body: NoteComposer(appendCompleted: 0, onSubmit: (_) {}),
+          ),
+        ),
+      );
+
+      final controller = tester
+          .widget<TextField>(find.byKey(const ValueKey('composer-input')))
+          .controller!;
+      controller.text = 'existing';
+      // The field must be unfocused before forcing an invalid selection:
+      // while focused, EditableText immediately normalizes an invalid
+      // selection back to a valid one, which would hide the regression.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+      controller.selection = const TextSelection.collapsed(offset: -1);
+
+      await tester.tap(find.byKey(const ValueKey('composer-paste')));
+      await tester.pump();
+
+      const expectedText = 'existingpasted';
+      expect(controller.text, expectedText);
+      expect(controller.selection.baseOffset, expectedText.length);
+      expect(controller.selection.extentOffset, expectedText.length);
+    },
+  );
+
   testWidgets('empty state explains Append, Review, Rescue', (tester) async {
     await pumpPage(tester);
 
