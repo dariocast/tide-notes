@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Atlas — a lightweight space for connected thinking">
+<title>Atlas — connected thinking</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app" class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="mark">A</span><span>atlas</span></div>
+    <button class="primary full" data-action="new">＋ New object</button>
+    <nav class="nav" aria-label="Workspace views">
+      <button class="nav-item active" data-view="today">◷ <span>Today</span><b id="today-count">0</b></button>
+      <button class="nav-item" data-view="inbox">⌄ <span>Inbox</span><b id="inbox-count">0</b></button>
+      <button class="nav-item" data-view="library">▦ <span>Library</span><b id="library-count">0</b></button>
+      <button class="nav-item" data-view="connections">⌘ <span>Connections</span></button>
+    </nav>
+    <div class="side-label">Spaces</div>
+    <button class="space"><i class="dot orange"></i> Writing</button>
+    <button class="space"><i class="dot green"></i> Research</button>
+    <button class="space"><i class="dot purple"></i> Personal</button>
+    <div class="profile"><span class="avatar">DC</span><span><strong>Dario</strong><small>Personal workspace</small></span></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><span id="breadcrumb">Workspace / <strong>Today</strong></span><div class="top-actions"><button class="secondary" data-action="search">⌘ K <span>Search</span></button><button class="secondary" data-action="export">⇩ <span>Export</span></button><label class="secondary import-label">⇧ <span>Import</span><input id="import-input" type="file" accept="application/json"></label></div></header>
+    <section class="hero"><div><div class="eyebrow" id="eyebrow">Tuesday, 21 October</div><h1 id="greeting">Good morning, Dario.</h1><p id="subtitle">A quiet place for the ideas that matter.</p></div><span class="count" id="object-count">0 objects</span></section>
+    <form class="capture" id="quick-form"><span class="capture-icon">＋</span><input id="quick-input" autocomplete="off" placeholder="Capture a thought…" aria-label="Capture a thought"><kbd>⌘ ↵</kbd></form>
+    <div class="view-heading"><h2 id="view-title">Today</h2><button class="filter" id="filter-button">All types ▾</button></div>
+    <section class="object-grid" id="object-grid" aria-live="polite"></section>
+  </main>
+  <aside class="context"><h2>In this context</h2><div id="context-list"></div><p class="insight">Connections grow as you write. Atlas never reorganizes your workspace without showing you why.</p></aside>
+</div>
+<div class="modal-backdrop" id="editor-modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="editor-title"><header><h2 id="editor-title">New object</h2><button class="icon-button" data-action="close-editor" aria-label="Close">×</button></header><form id="editor-form"><label>Type<select id="object-type"><option value="note">Note</option><option value="project">Project</option><option value="source">Source</option><option value="person">Person</option><option value="task">Task</option></select></label><label>Title<input id="object-title" required maxlength="120" placeholder="Give it a name"></label><label>Content<textarea id="object-content" maxlength="1000" placeholder="Start writing…"></textarea></label><label>Tags<input id="object-tags" placeholder="product, research"></label><div class="modal-actions"><button type="button" class="secondary" data-action="close-editor">Cancel</button><button class="primary" type="submit">Save object</button></div></form></section></div>
+<div class="modal-backdrop" id="search-modal" hidden><section class="modal search-modal" role="dialog" aria-modal="true"><header><h2>Search workspace</h2><button class="icon-button" data-action="close-search" aria-label="Close">×</button></header><input id="search-input" class="search-input" placeholder="Search titles, content and tags…" autocomplete="off"><div id="search-results"></div></section></div>
+<template id="object-card-template"><article class="object-card"><div class="card-head"><span class="type"></span><time></time></div><h3></h3><p></p><div class="tags"></div><button class="card-open" aria-label="Open object"></button></article></template>
+<script src="app.js"></script>
+</body>
+</html>
